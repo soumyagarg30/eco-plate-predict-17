@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -65,56 +64,58 @@ const RegisterForm = () => {
         case "restaurant":
           tableName = "Restaurants_Details";
           insertData = {
-            Restaurant_Name: formData.name,
-            Email: formData.email,
-            Password: formData.password,
-            Phone_Number: formData.phone ? parseInt(formData.phone) : 0, // Default to 0 as it's required
-            address: formData.address // Changed from Address to address to match DB schema
+            restaurant_name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone_number: formData.phone ? parseInt(formData.phone) : 0, // Default to 0 as it's required
+            address: formData.address
           };
           break;
         
         case "user":
           tableName = "User_Details";
           insertData = {
-            Name: formData.name,
-            Email: formData.email,
-            Password: formData.password,
-            Phone_Number: formData.phone
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone_number: formData.phone
           };
           break;
         
         case "ngo":
           tableName = "Ngo's";
           insertData = {
-            Name: formData.name,
-            Email: formData.email,
-            Password: formData.password,
-            Phone_Number: formData.phone ? parseInt(formData.phone) : null,
-            address: formData.address // Changed from Address to address to match DB schema
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone_number: formData.phone ? parseInt(formData.phone) : null,
+            address: formData.address
           };
           break;
         
         case "packing":
           tableName = "Packing_Companies";
           insertData = {
-            Name: formData.name,
-            Email: formData.email,
-            Password: formData.password,
-            Phone_Number: formData.phone ? parseInt(formData.phone) : null,
-            address: formData.address // Changed from Address to address to match DB schema
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone_number: formData.phone ? parseInt(formData.phone) : null,
+            address: formData.address
           };
           break;
         
         case "admin":
           tableName = "Admin";
           insertData = {
-            Username: formData.name,
-            Email: formData.email,
-            Password: formData.password,
-            Phone_number: formData.phone ? parseInt(formData.phone) : null
+            username: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone_number: formData.phone ? parseInt(formData.phone) : null
           };
           break;
       }
+
+      console.log(`Attempting to insert into ${tableName}:`, insertData);
 
       insertResult = await supabase
         .from(tableName)
