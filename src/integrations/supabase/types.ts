@@ -9,7 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      Admin: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+          password: string
+          phone_number: number | null
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: number
+          password: string
+          phone_number?: number | null
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: number
+          password?: string
+          phone_number?: number | null
+          username?: string
+        }
+        Relationships: []
+      }
+      "Ngo's": {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: number
+          name: string
+          password: string
+          phone_number: number | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          name: string
+          password: string
+          phone_number?: number | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          name?: string
+          password?: string
+          phone_number?: number | null
+        }
+        Relationships: []
+      }
+      Packing_Companies: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: number
+          name: string
+          password: string
+          phone_number: number | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          name: string
+          password: string
+          phone_number?: number | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          name?: string
+          password?: string
+          phone_number?: number | null
+        }
+        Relationships: []
+      }
+      Restaurants_Details: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: number
+          password: string
+          phone_number: number
+          restaurant_name: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          password: string
+          phone_number: number
+          restaurant_name: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          password?: string
+          phone_number?: number
+          restaurant_name?: string
+        }
+        Relationships: []
+      }
+      User_Details: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+          name: string
+          password: string
+          phone_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: number
+          name: string
+          password: string
+          phone_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: number
+          name?: string
+          password?: string
+          phone_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
