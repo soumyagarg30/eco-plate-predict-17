@@ -13,7 +13,7 @@ import { Package, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
 
 interface PackingRequest {
   id: string;
-  requester_type: 'restaurant' | 'ngo';
+  requester_type: string; // Changed from 'restaurant' | 'ngo' to string to match Supabase data
   requester_id: number;
   request_title: string;
   request_description: string;
