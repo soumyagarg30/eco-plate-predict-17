@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,12 +12,12 @@ import Navbar from "@/components/Navbar";
 
 interface PackingRequest {
   id: string;
-  requester_type: string; // Changed from 'restaurant' | 'ngo' to string to match Supabase data
+  requester_type: string;
   requester_id: number;
   request_title: string;
   request_description: string;
   quantity: number;
-  status: string; // Changed from 'pending' | 'approved' | 'rejected' | 'completed' to string to match Supabase data
+  status: string;
   created_at: string;
   due_date: string;
   requester_name?: string;
@@ -187,224 +186,232 @@ const PackingDashboard = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full md:w-[500px] grid-cols-3 mb-8 bg-gray-100 p-1 rounded-lg">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="requests" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <ClipboardList className="h-4 w-4 mr-2" />
-              Packing Requests
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="profile" className="mt-6">
-            <Card className="border-none shadow-md">
-              <CardHeader className="bg-blue-50 border-b pb-8 pt-8">
-                <CardTitle className="text-2xl font-bold text-blue-800">Company Profile</CardTitle>
-                <CardDescription className="text-blue-600">
-                  View and manage your packing company details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-8">
-                {userData && (
-                  <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-gray-500">Company Name</h3>
-                        <p className="text-xl font-semibold text-gray-800">{userData.name}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-gray-500">Email Address</h3>
-                        <p className="text-xl text-gray-800">{userData.email}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {userData.phone_number && (
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium text-gray-500">Phone Number</h3>
-                          <p className="text-xl text-gray-800">{userData.phone_number}</p>
-                        </div>
-                      )}
-                      
-                      {userData.address && (
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium text-gray-500">Address</h3>
-                          <p className="text-xl text-gray-800">{userData.address}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+        <div className="flex gap-6">
+          <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="flex flex-row gap-6 w-full" orientation="vertical">
+            <Card className="border shadow h-fit">
+              <CardContent className="p-0">
+                <TabsList orientation="vertical" className="w-full bg-transparent rounded-md">
+                  <TabsTrigger value="profile" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <User className="h-5 w-5" />
+                    <span className="text-base">Profile</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="requests" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <ClipboardList className="h-5 w-5" />
+                    <span className="text-base">Packing Requests</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="settings" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <Settings className="h-5 w-5" />
+                    <span className="text-base">Settings</span>
+                  </TabsTrigger>
+                </TabsList>
               </CardContent>
-              <CardFooter className="bg-gray-50 py-4 flex justify-end border-t">
-                <Button variant="outline" className="mr-2">Edit Profile</Button>
-                <Button>Update Password</Button>
-              </CardFooter>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="requests" className="mt-6">
-            <Card className="bg-white shadow-md">
-              <CardHeader className="border-b">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Packing Requests
-                    </CardTitle>
-                    <CardDescription>Manage requests from restaurants and NGOs</CardDescription>
-                  </div>
-                  <Button onClick={refreshData} size="sm" variant="outline" className="gap-2">
-                    <RefreshCw className="h-4 w-4" />
-                    Refresh
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p>Loading requests...</p>
-                  </div>
-                ) : packingRequests.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No packing requests found</p>
-                    <p className="text-sm">Requests from restaurants and NGOs will appear here</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {packingRequests.map((request) => (
-                      <Card key={request.id} className="overflow-hidden border border-gray-200">
-                        <CardHeader className="pb-2 bg-gray-50">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">{request.request_title}</CardTitle>
-                              <CardDescription>
-                                From: {request.requester_name} ({request.requester_type})
-                              </CardDescription>
-                            </div>
-                            {getStatusBadge(request.status)}
+            
+            <div className="flex-1">
+              <TabsContent value="profile" className="m-0">
+                <Card className="border-none shadow-md">
+                  <CardHeader className="bg-blue-50 border-b pb-8 pt-8">
+                    <CardTitle className="text-2xl font-bold text-blue-800">Company Profile</CardTitle>
+                    <CardDescription className="text-blue-600">
+                      View and manage your packing company details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-8">
+                    {userData && (
+                      <div className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-medium text-gray-500">Company Name</h3>
+                            <p className="text-xl font-semibold text-gray-800">{userData.name}</p>
                           </div>
-                        </CardHeader>
-                        <CardContent className="pb-2 pt-4">
-                          <p className="text-sm text-gray-700 mb-4">{request.request_description}</p>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="font-medium text-gray-500">Quantity:</p>
-                              <p>{request.quantity} units</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-500">Due Date:</p>
-                              <p>{formatDate(request.due_date)}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-500">Created:</p>
-                              <p>{formatDate(request.created_at)}</p>
-                            </div>
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-medium text-gray-500">Email Address</h3>
+                            <p className="text-xl text-gray-800">{userData.email}</p>
                           </div>
-                        </CardContent>
-                        <CardFooter className="border-t pt-4 flex flex-wrap gap-2 bg-gray-50">
-                          {request.status === 'pending' && (
-                            <>
-                              <Button 
-                                size="sm"
-                                className="bg-green-500 hover:bg-green-600"
-                                onClick={() => updateRequestStatus(request.id, 'approved')}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Approve
-                              </Button>
-                              <Button 
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => updateRequestStatus(request.id, 'rejected')}
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Reject
-                              </Button>
-                            </>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          {userData.phone_number && (
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-medium text-gray-500">Phone Number</h3>
+                              <p className="text-xl text-gray-800">{userData.phone_number}</p>
+                            </div>
                           )}
-                          {request.status === 'approved' && (
-                            <Button 
-                              size="sm"
-                              className="bg-blue-500 hover:bg-blue-600"
-                              onClick={() => updateRequestStatus(request.id, 'completed')}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Mark Completed
-                            </Button>
+                          
+                          {userData.address && (
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-medium text-gray-500">Address</h3>
+                              <p className="text-xl text-gray-800">{userData.address}</p>
+                            </div>
                           )}
-                          {(request.status === 'rejected' || request.status === 'completed') && (
-                            <p className="text-sm text-gray-500 italic py-1">
-                              {request.status === 'rejected' ? 'This request was rejected' : 'This request is completed'}
-                            </p>
-                          )}
-                        </CardFooter>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="mt-6">
-            <Card className="border-none shadow-md">
-              <CardHeader className="bg-gray-50 border-b">
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>Manage your account preferences</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium">Notification Preferences</h3>
-                    <p className="text-sm text-gray-500">
-                      Control how and when you receive updates about requests
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <Button variant="outline" className="justify-start">
-                        Configure Email Notifications
-                      </Button>
-                      <Button variant="outline" className="justify-start">
-                        Configure SMS Notifications
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="bg-gray-50 py-4 flex justify-end border-t">
+                    <Button variant="outline" className="mr-2">Edit Profile</Button>
+                    <Button>Update Password</Button>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="requests" className="m-0">
+                <Card className="bg-white shadow-md">
+                  <CardHeader className="border-b">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Package className="h-5 w-5" />
+                          Packing Requests
+                        </CardTitle>
+                        <CardDescription>Manage requests from restaurants and NGOs</CardDescription>
+                      </div>
+                      <Button onClick={refreshData} size="sm" variant="outline" className="gap-2">
+                        <RefreshCw className="h-4 w-4" />
+                        Refresh
                       </Button>
                     </div>
-                  </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    {loading ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p>Loading requests...</p>
+                      </div>
+                    ) : packingRequests.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No packing requests found</p>
+                        <p className="text-sm">Requests from restaurants and NGOs will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {packingRequests.map((request) => (
+                          <Card key={request.id} className="overflow-hidden border border-gray-200">
+                            <CardHeader className="pb-2 bg-gray-50">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="text-lg">{request.request_title}</CardTitle>
+                                  <CardDescription>
+                                    From: {request.requester_name} ({request.requester_type})
+                                  </CardDescription>
+                                </div>
+                                {getStatusBadge(request.status)}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pb-2 pt-4">
+                              <p className="text-sm text-gray-700 mb-4">{request.request_description}</p>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="font-medium text-gray-500">Quantity:</p>
+                                  <p>{request.quantity} units</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-500">Due Date:</p>
+                                  <p>{formatDate(request.due_date)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-500">Created:</p>
+                                  <p>{formatDate(request.created_at)}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="border-t pt-4 flex flex-wrap gap-2 bg-gray-50">
+                              {request.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    size="sm"
+                                    className="bg-green-500 hover:bg-green-600"
+                                    onClick={() => updateRequestStatus(request.id, 'approved')}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Approve
+                                  </Button>
+                                  <Button 
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => updateRequestStatus(request.id, 'rejected')}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {request.status === 'approved' && (
+                                <Button 
+                                  size="sm"
+                                  className="bg-blue-500 hover:bg-blue-600"
+                                  onClick={() => updateRequestStatus(request.id, 'completed')}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Mark Completed
+                                </Button>
+                              )}
+                              {(request.status === 'rejected' || request.status === 'completed') && (
+                                <p className="text-sm text-gray-500 italic py-1">
+                                  {request.status === 'rejected' ? 'This request was rejected' : 'This request is completed'}
+                                </p>
+                              )}
+                            </CardFooter>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                  <div className="space-y-2 pt-4 border-t">
-                    <h3 className="text-lg font-medium pt-4">Security Settings</h3>
-                    <p className="text-sm text-gray-500">
-                      Manage your account security and password
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <Button variant="outline" className="justify-start">
-                        Change Password
-                      </Button>
-                      <Button variant="outline" className="justify-start">
-                        Two-Factor Authentication
-                      </Button>
+              <TabsContent value="settings" className="m-0">
+                <Card className="border-none shadow-md">
+                  <CardHeader className="bg-gray-50 border-b">
+                    <CardTitle>Account Settings</CardTitle>
+                    <CardDescription>Manage your account preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-medium">Notification Preferences</h3>
+                        <p className="text-sm text-gray-500">
+                          Control how and when you receive updates about requests
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <Button variant="outline" className="justify-start">
+                            Configure Email Notifications
+                          </Button>
+                          <Button variant="outline" className="justify-start">
+                            Configure SMS Notifications
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 pt-4 border-t">
+                        <h3 className="text-lg font-medium pt-4">Security Settings</h3>
+                        <p className="text-sm text-gray-500">
+                          Manage your account security and password
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <Button variant="outline" className="justify-start">
+                            Change Password
+                          </Button>
+                          <Button variant="outline" className="justify-start">
+                            Two-Factor Authentication
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="bg-gray-50 border-t mt-6 flex justify-end">
-                <Button variant="outline" className="mr-2">Cancel</Button>
-                <Button variant="destructive" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  </CardContent>
+                  <CardFooter className="bg-gray-50 border-t mt-6 flex justify-end">
+                    <Button variant="outline" className="mr-2">Cancel</Button>
+                    <Button variant="destructive" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
       </main>
       <Footer />
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
@@ -193,182 +192,201 @@ const UserDashboard = () => {
           Welcome back, {userData?.Name || "User"}
         </h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full md:w-[600px] grid-cols-3">
-            <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
-            <TabsTrigger value="ratings">My Ratings</TabsTrigger>
-            <TabsTrigger value="preferences">My Preferences</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="restaurants" className="mt-6">
-            <div className="mb-6">
-              <div className="relative mb-4">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search restaurants by name or location..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRestaurants.map(restaurant => (
-                <Card key={restaurant.id} className="overflow-hidden h-full flex flex-col">
-                  <div className="h-40 bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <img 
-                      src={"/lovable-uploads/715acbd8-f10b-4c21-8814-7391636451e2.png"} 
-                      alt={restaurant.restaurant_name} 
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
+        <div className="flex gap-6">
+          {/* Vertical Tabs Navigation */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-row gap-6 w-full" orientation="vertical">
+            <Card className="border shadow h-fit">
+              <CardContent className="p-0">
+                <TabsList orientation="vertical" className="w-full bg-transparent rounded-md">
+                  <TabsTrigger value="restaurants" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <UtensilsCrossed className="h-5 w-5" />
+                    <span className="text-base">Restaurants</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="ratings" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <Star className="h-5 w-5" />
+                    <span className="text-base">My Ratings</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="preferences" orientation="vertical" className="flex items-center gap-2 px-4 py-3">
+                    <Settings className="h-5 w-5" />
+                    <span className="text-base">My Preferences</span>
+                  </TabsTrigger>
+                </TabsList>
+              </CardContent>
+            </Card>
+
+            {/* Tab Content */}
+            <div className="flex-1">
+              <TabsContent value="restaurants" className="m-0">
+                <div className="mb-6">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search restaurants by name or location..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex justify-between items-center">
-                      <span>{restaurant.restaurant_name}</span>
-                      {getUserRatingForRestaurant(restaurant.id) && (
-                        <span className="flex items-center text-yellow-400">
-                          <Star className="h-5 w-5 fill-yellow-400 mr-1" />
-                          {getUserRatingForRestaurant(restaurant.id).rating}
-                        </span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-2 flex-grow">
-                    {restaurant.address && (
-                      <div className="flex items-center text-gray-500 mb-2">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{restaurant.address}</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredRestaurants.map(restaurant => (
+                    <Card key={restaurant.id} className="overflow-hidden h-full flex flex-col">
+                      <div className="h-40 bg-gray-200 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={"/lovable-uploads/715acbd8-f10b-4c21-8814-7391636451e2.png"} 
+                          alt={restaurant.restaurant_name} 
+                          className="w-full h-full object-cover transition-transform hover:scale-105"
+                        />
                       </div>
-                    )}
-                    {restaurant.phone_number && (
-                      <div className="flex items-center text-gray-500 mb-2">
-                        <Phone className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{restaurant.phone_number}</span>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex justify-between items-center">
+                          <span>{restaurant.restaurant_name}</span>
+                          {getUserRatingForRestaurant(restaurant.id) && (
+                            <span className="flex items-center text-yellow-400">
+                              <Star className="h-5 w-5 fill-yellow-400 mr-1" />
+                              {getUserRatingForRestaurant(restaurant.id).rating}
+                            </span>
+                          )}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-2 flex-grow">
+                        {restaurant.address && (
+                          <div className="flex items-center text-gray-500 mb-2">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span className="text-sm">{restaurant.address}</span>
+                          </div>
+                        )}
+                        {restaurant.phone_number && (
+                          <div className="flex items-center text-gray-500 mb-2">
+                            <Phone className="h-4 w-4 mr-1" />
+                            <span className="text-sm">{restaurant.phone_number}</span>
+                          </div>
+                        )}
+                      </CardContent>
+                      <CardFooter className="pt-0 flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handlePreview(restaurant)}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleContact(restaurant)}
+                        >
+                          Contact
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                  
+                  {filteredRestaurants.length === 0 && (
+                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
+                      No restaurants found matching your search criteria.
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="ratings" className="m-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My Restaurant Ratings</CardTitle>
+                    <CardDescription>Review your past ratings and feedback</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {ratings.length > 0 ? (
+                      <div className="border rounded-md overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Restaurant</TableHead>
+                              <TableHead>Rating</TableHead>
+                              <TableHead>Review</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {ratings.map((rating) => (
+                              <TableRow key={rating.id}>
+                                <TableCell className="font-medium">
+                                  {rating.Restaurants_Details?.restaurant_name || "Unknown Restaurant"}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-4 w-4 ${
+                                          i < rating.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="max-w-xs truncate">
+                                  {rating.review || "No review provided"}
+                                </TableCell>
+                                <TableCell>
+                                  {new Date(rating.created_at).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedRestaurant(rating.Restaurants_Details);
+                                      setOpenRatingDialog(true);
+                                    }}
+                                  >
+                                    Edit
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="text-center p-6 bg-gray-50 rounded-md">
+                        <p className="text-gray-500">You haven't rated any restaurants yet.</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => setActiveTab("restaurants")}
+                        >
+                          Browse Restaurants
+                        </Button>
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter className="pt-0 flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handlePreview(restaurant)}
-                    >
-                      View Details
-                    </Button>
-                    <Button 
-                      variant="default" 
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleContact(restaurant)}
-                    >
-                      Contact
-                    </Button>
-                  </CardFooter>
                 </Card>
-              ))}
+              </TabsContent>
               
-              {filteredRestaurants.length === 0 && (
-                <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
-                  No restaurants found matching your search criteria.
-                </div>
-              )}
+              <TabsContent value="preferences" className="m-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My Preferences</CardTitle>
+                    <CardDescription>Update your food preferences and settings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <UserPreferencesForm
+                      userData={userData}
+                      existingPreferences={userPreferences}
+                      onSuccess={handlePreferencesUpdated}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="ratings" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Restaurant Ratings</CardTitle>
-                <CardDescription>Review your past ratings and feedback</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {ratings.length > 0 ? (
-                  <div className="border rounded-md overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Restaurant</TableHead>
-                          <TableHead>Rating</TableHead>
-                          <TableHead>Review</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {ratings.map((rating) => (
-                          <TableRow key={rating.id}>
-                            <TableCell className="font-medium">
-                              {rating.Restaurants_Details?.restaurant_name || "Unknown Restaurant"}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < rating.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="max-w-xs truncate">
-                              {rating.review || "No review provided"}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(rating.created_at).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedRestaurant(rating.Restaurants_Details);
-                                  setOpenRatingDialog(true);
-                                }}
-                              >
-                                Edit
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center p-6 bg-gray-50 rounded-md">
-                    <p className="text-gray-500">You haven't rated any restaurants yet.</p>
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => setActiveTab("restaurants")}
-                    >
-                      Browse Restaurants
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="preferences" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Preferences</CardTitle>
-                <CardDescription>Update your food preferences and settings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserPreferencesForm
-                  userData={userData}
-                  existingPreferences={userPreferences}
-                  onSuccess={handlePreferencesUpdated}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
         
         {/* Restaurant Preview Dialog */}
         <Dialog open={openPreview} onOpenChange={setOpenPreview}>
