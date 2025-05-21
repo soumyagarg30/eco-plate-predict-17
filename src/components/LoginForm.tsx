@@ -13,6 +13,7 @@ import { Database } from "@/integrations/supabase/types";
 
 // Define types for better TypeScript support
 type UserTypes = "restaurant" | "user" | "ngo" | "packing" | "admin";
+type TableNames = "Restaurants_Details" | "User_Details" | "Ngo's" | "Packing_Companies" | "Admin";
 
 type TableData = {
   id: number;
@@ -74,7 +75,7 @@ const LoginForm = () => {
     
     try {
       // Query the appropriate table based on user type
-      let tableName: string;
+      let tableName: TableNames;
       
       switch (userType) {
         case "restaurant":
