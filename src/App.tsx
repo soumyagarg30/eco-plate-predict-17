@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import NGORegister from "./pages/NGORegister";
 import PackingRegister from "./pages/PackingRegister";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/ngo-register" element={<NGORegister />} />
           <Route path="/packing-register" element={<PackingRegister />} />
           <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
