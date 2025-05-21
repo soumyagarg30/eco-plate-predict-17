@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,9 +212,9 @@ const PackingDashboard = () => {
               <TabsContent value="profile" className="m-0">
                 <Card className="border-none shadow-md">
                   <CardHeader className="bg-blue-50 border-b pb-8 pt-8">
-                    <CardTitle className="text-2xl font-bold text-blue-800">Company Profile</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-blue-800">FoodieSync</CardTitle>
                     <CardDescription className="text-blue-600">
-                      View and manage your packing company details
+                      Manage your profile details
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-8">
