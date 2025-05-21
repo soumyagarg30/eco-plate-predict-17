@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,17 +43,17 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <Avatar className="h-10 w-10 bg-foodie-green text-white">
+            <Avatar className="h-10 w-10 bg-gray-200 text-gray-800">
               <AvatarFallback>{getInitials(restaurantName)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm truncate max-w-[180px]">{restaurantName}</span>
+              <span className="font-semibold text-sm truncate max-w-[180px] text-gray-900">{restaurantName}</span>
               <span className="text-xs text-gray-500">Restaurant</span>
             </div>
           </div>
         )}
         {isCollapsed && (
-          <Avatar className="h-10 w-10 mx-auto bg-foodie-green text-white">
+          <Avatar className="h-10 w-10 mx-auto bg-gray-200 text-gray-800">
             <AvatarFallback>{getInitials(restaurantName)}</AvatarFallback>
           </Avatar>
         )}
@@ -79,9 +80,7 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
           {[
             { name: "Dashboard", icon: "home", path: "/restaurant-dashboard" },
             { name: "Menu", icon: "menu", path: "/restaurant-dashboard?tab=menu" },
-            { name: "Orders", icon: "shopping-bag", path: "/restaurant-orders" },
             { name: "Analytics", icon: "bar-chart", path: "/restaurant-analytics" },
-            { name: "Sustainability", icon: "leaf", path: "/restaurant-sustainability" },
             { name: "Settings", icon: "settings", path: "/restaurant-settings" },
           ].map((item) => (
             <li key={item.name}>
@@ -89,7 +88,7 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
                 to={item.path}
                 className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
               >
-                <span className="material-icons text-foodie-green">{item.icon}</span>
+                <span className="material-icons text-gray-700">{item.icon}</span>
                 {!isCollapsed && <span className="ml-3">{item.name}</span>}
               </Link>
             </li>

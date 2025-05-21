@@ -6,9 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
-import FoodWastageModel from "@/components/restaurant/FoodWastageModel";
 import FoodPrepModel from "@/components/restaurant/FoodPrepModel";
-import PackagingModel from "@/components/restaurant/PackagingModel";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
 
 const RestaurantDashboard = () => {
@@ -91,7 +89,7 @@ const RestaurantDashboard = () => {
         </Alert>
         <button 
           onClick={() => navigate("/login")}
-          className="px-4 py-2 bg-foodie-green text-white rounded hover:bg-foodie-green-dark"
+          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
         >
           Go to Login
         </button>
@@ -113,20 +111,18 @@ const RestaurantDashboard = () => {
       
       <div className="flex-1 p-6 md:p-10">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-foodie-green-dark">
+          <h1 className="text-3xl font-bold text-gray-900">
             Welcome, {restaurantData.restaurant_name}
           </h1>
           <p className="text-gray-600">
-            Manage your menu, analyze sustainability metrics, and optimize your operations
+            Manage your menu, analyze analytics, and optimize your operations
           </p>
         </header>
 
         <Tabs defaultValue="menu" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="menu">Menu Management</TabsTrigger>
-            <TabsTrigger value="wastage">Food Wastage Model</TabsTrigger>
             <TabsTrigger value="prep">Food Preparation Model</TabsTrigger>
-            <TabsTrigger value="packaging">Sustainable Packaging</TabsTrigger>
           </TabsList>
           
           <TabsContent value="menu">
@@ -137,26 +133,10 @@ const RestaurantDashboard = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="wastage">
-            <Card>
-              <CardContent className="p-6">
-                <FoodWastageModel restaurantId={restaurantData.id} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
           <TabsContent value="prep">
             <Card>
               <CardContent className="p-6">
                 <FoodPrepModel restaurantId={restaurantData.id} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="packaging">
-            <Card>
-              <CardContent className="p-6">
-                <PackagingModel restaurantId={restaurantData.id} />
               </CardContent>
             </Card>
           </TabsContent>
