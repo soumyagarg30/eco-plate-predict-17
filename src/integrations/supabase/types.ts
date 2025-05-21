@@ -96,6 +96,95 @@ export type Database = {
         }
         Relationships: []
       }
+      packing_requests: {
+        Row: {
+          created_at: string
+          due_date: string
+          id: string
+          packing_company_id: number | null
+          quantity: number
+          request_description: string
+          request_title: string
+          requester_id: number
+          requester_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          due_date: string
+          id?: string
+          packing_company_id?: number | null
+          quantity: number
+          request_description: string
+          request_title: string
+          requester_id: number
+          requester_type: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          id?: string
+          packing_company_id?: number | null
+          quantity?: number
+          request_description?: string
+          request_title?: string
+          requester_id?: number
+          requester_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packing_requests_packing_company_id_fkey"
+            columns: ["packing_company_id"]
+            isOneToOne: false
+            referencedRelation: "Packing_Companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          restaurant_id: number
+          review: string | null
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          restaurant_id: number
+          review?: string | null
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          restaurant_id?: number
+          review?: string | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "Restaurants_Details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "User_Details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Restaurants_Details: {
         Row: {
           address: string | null
@@ -152,6 +241,50 @@ export type Database = {
           phone_number?: string | null
         }
         Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          ac_preference: boolean | null
+          avg_quantity_ordered: number | null
+          created_at: string
+          dietary_restrictions: string[] | null
+          family_members: number | null
+          favorite_foods: string[]
+          id: string
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          ac_preference?: boolean | null
+          avg_quantity_ordered?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          family_members?: number | null
+          favorite_foods?: string[]
+          id?: string
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          ac_preference?: boolean | null
+          avg_quantity_ordered?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          family_members?: number | null
+          favorite_foods?: string[]
+          id?: string
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "User_Details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
