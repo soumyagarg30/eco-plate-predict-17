@@ -46,8 +46,8 @@ const RestaurantDashboard = () => {
       const parsedData = JSON.parse(userData);
       console.log("Restaurant data loaded:", parsedData);
       
-      // Check if the data has expected restaurant properties
-      if (!parsedData || !parsedData.Restaurant_Name) {
+      // Check if the data has expected restaurant properties - use lowercase restaurant_name
+      if (!parsedData || !parsedData.restaurant_name) {
         throw new Error("Invalid restaurant data format");
       }
       
@@ -109,12 +109,12 @@ const RestaurantDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <RestaurantSidebar restaurantName={restaurantData.Restaurant_Name} />
+      <RestaurantSidebar restaurantName={restaurantData.restaurant_name} />
       
       <div className="flex-1 p-6 md:p-10">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-foodie-green-dark">
-            Welcome, {restaurantData.Restaurant_Name}
+            Welcome, {restaurantData.restaurant_name}
           </h1>
           <p className="text-gray-600">
             Manage your menu, analyze sustainability metrics, and optimize your operations
