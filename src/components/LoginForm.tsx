@@ -86,30 +86,35 @@ const LoginForm = () => {
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
       console.log(`Email: ${email}, Password: ${password}`);
       
-      // *** DIRECT APPROACH: Try to find the user with both email and password at once ***
-      // This avoids potential case sensitivity issues by using a raw SQL query
-      const { data, error } = await supabase
+      // First, get the exact email format from database for comparison
+      // Using a more direct approach with separate exact match and case-insensitive queries
+      const { data: emailData, error: emailError } = await supabase
         .from(tableName)
         .select("*")
-        .or(`Email.eq.${email},Email.ilike.${email}`)
-        .eq("Password", password);
+        .ilike("Email", email);
       
-      console.log("Login query result:", { data, error });
-      
-      if (error) {
-        console.error("Login error:", error);
-        setLoginError(error.message || "Error during login");
-        throw new Error(error.message || "Error during login");
+      if (emailError) {
+        throw new Error(emailError.message || "Error checking email");
       }
       
-      if (!data || data.length === 0) {
-        console.log("No matching user found");
+      if (!emailData || emailData.length === 0) {
+        console.log("No matching email found in database");
         setLoginError("Invalid email or password");
         throw new Error("Invalid email or password");
       }
       
-      const userData = data[0];
-      console.log("User data retrieved:", userData);
+      console.log("Found potential email matches:", emailData);
+      
+      // Now check if any of those emails match with the provided password
+      const matchingUser = emailData.find(user => user.Password === password);
+      
+      if (!matchingUser) {
+        console.log("Password doesn't match for any found email");
+        setLoginError("Invalid email or password");
+        throw new Error("Invalid email or password");
+      }
+      
+      console.log("User authenticated successfully:", matchingUser);
       
       toast({
         title: "Login Successful",
@@ -118,7 +123,7 @@ const LoginForm = () => {
       
       // Store user info in localStorage for persistence
       localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
+      localStorage.setItem("foodieSync_userData", JSON.stringify(matchingUser));
       
       console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       
