@@ -18,7 +18,7 @@ interface PackingRequest {
   request_title: string;
   request_description: string;
   quantity: number;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: string; // Changed from 'pending' | 'approved' | 'rejected' | 'completed' to string to match Supabase data
   created_at: string;
   due_date: string;
   requester_name?: string;
