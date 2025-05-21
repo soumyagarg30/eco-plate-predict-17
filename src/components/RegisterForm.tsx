@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ const RegisterForm = () => {
           tableName = "Restaurants_Details";
           insertData = {
             restaurant_name: formData.name,
-            email: formData.email,
+            email: formData.email,  // Using lowercase email to match database column
             password: formData.password,
             phone_number: formData.phone ? parseInt(formData.phone) : 0, // Default to 0 as it's required
             address: formData.address
@@ -76,7 +77,7 @@ const RegisterForm = () => {
           tableName = "User_Details";
           insertData = {
             name: formData.name,
-            email: formData.email,
+            email: formData.email,  // Using lowercase email
             password: formData.password,
             phone_number: formData.phone
           };
@@ -86,7 +87,7 @@ const RegisterForm = () => {
           tableName = "Ngo's";
           insertData = {
             name: formData.name,
-            email: formData.email,
+            email: formData.email,  // Using lowercase email
             password: formData.password,
             phone_number: formData.phone ? parseInt(formData.phone) : null,
             address: formData.address
@@ -97,7 +98,7 @@ const RegisterForm = () => {
           tableName = "Packing_Companies";
           insertData = {
             name: formData.name,
-            email: formData.email,
+            email: formData.email,  // Using lowercase email
             password: formData.password,
             phone_number: formData.phone ? parseInt(formData.phone) : null,
             address: formData.address
@@ -108,7 +109,7 @@ const RegisterForm = () => {
           tableName = "Admin";
           insertData = {
             username: formData.name,
-            email: formData.email,
+            email: formData.email,  // Using lowercase email
             password: formData.password,
             phone_number: formData.phone ? parseInt(formData.phone) : null
           };

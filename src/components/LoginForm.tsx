@@ -17,8 +17,8 @@ type TableNames = "Restaurants_Details" | "User_Details" | "Ngo's" | "Packing_Co
 
 type TableData = {
   id: number;
-  Email?: string | null;
-  Password?: string | null;
+  email?: string | null;  // Changed from Email to email (lowercase)
+  password?: string | null;  // Using lowercase for consistency
   [key: string]: any; // Allow for other properties that might exist in each user type
 }
 
@@ -99,10 +99,11 @@ const LoginForm = () => {
       console.log(`Email: ${email}, Password: ${password}`);
       
       // Find accounts with matching email (case-insensitive)
+      // Fixed the column name here: using "email" (lowercase) instead of "Email"
       const { data: emailData, error: emailError } = await supabase
         .from(tableName)
         .select("*")
-        .ilike("Email", email);
+        .ilike("email", email);
         
       if (emailError) {
         console.error("Error checking email:", emailError);
@@ -119,11 +120,11 @@ const LoginForm = () => {
       console.log("Found potential email matches:", emailData);
       
       // Check if any of the returned accounts have the correct password
-      // TypeScript safe approach by properly typing the data
+      // Fixed column name for password - use lowercase "password" instead of "Password"
       const matchingUser = emailData.find(user => {
-        // Ensure we're safely accessing the Password property
-        if (user && typeof user === 'object' && 'Password' in user) {
-          return user.Password === password;
+        // Ensure we're safely accessing the password property
+        if (user && typeof user === 'object' && 'password' in user) {
+          return user.password === password;
         }
         return false;
       });
