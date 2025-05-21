@@ -69,7 +69,7 @@ const RegisterForm = () => {
             Email: formData.email,
             Password: formData.password,
             Phone_Number: formData.phone ? parseInt(formData.phone) : 0, // Default to 0 as it's required
-            Address: formData.address
+            address: formData.address // Changed from Address to address to match DB schema
           };
           break;
         
@@ -90,7 +90,7 @@ const RegisterForm = () => {
             Email: formData.email,
             Password: formData.password,
             Phone_Number: formData.phone ? parseInt(formData.phone) : null,
-            Address: formData.address
+            address: formData.address // Changed from Address to address to match DB schema
           };
           break;
         
@@ -101,7 +101,7 @@ const RegisterForm = () => {
             Email: formData.email,
             Password: formData.password,
             Phone_Number: formData.phone ? parseInt(formData.phone) : null,
-            Address: formData.address
+            address: formData.address // Changed from Address to address to match DB schema
           };
           break;
         
