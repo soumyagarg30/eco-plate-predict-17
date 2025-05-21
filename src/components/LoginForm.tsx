@@ -86,28 +86,55 @@ const LoginForm = () => {
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
       console.log(`Email: ${email}, Password: ${password}`);
       
-      const { data, error } = await supabase
+      // First check if the email exists in the database
+      const { data: emailCheck, error: emailError } = await supabase
         .from(tableName)
-        .select("*")
-        .eq("Email", email)
-        .eq("Password", password);
+        .select("Email")
+        .eq("Email", email);
       
-      console.log("Login query result:", { data, error });
-      
-      if (error) {
-        console.error("Login error:", error);
-        setLoginError(error.message || "Invalid email or password");
-        throw new Error(error.message || "Invalid email or password");
+      if (emailError) {
+        console.error("Email check error:", emailError);
+        throw new Error(emailError.message || "Error checking email");
       }
       
-      if (!data || data.length === 0) {
-        console.log("No matching user found in the database");
+      if (!emailCheck || emailCheck.length === 0) {
+        console.log("Email not found in database");
         setLoginError("Invalid email or password");
         throw new Error("Invalid email or password");
       }
       
-      const userData = data[0];
-      console.log("User data retrieved:", userData);
+      console.log("Email found in database, checking password");
+      
+      // Now check both email and password
+      const { data, error } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("Email", email)
+        .eq("Password", password)
+        .single();
+      
+      console.log("Login query result:", { data, error });
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // This is the "no rows returned" error code
+          console.log("Password doesn't match");
+          setLoginError("Invalid email or password");
+          throw new Error("Invalid email or password");
+        } else {
+          console.error("Login error:", error);
+          setLoginError(error.message || "Error during login");
+          throw new Error(error.message || "Error during login");
+        }
+      }
+      
+      if (!data) {
+        console.log("No data returned after successful query");
+        setLoginError("Invalid email or password");
+        throw new Error("Invalid email or password");
+      }
+      
+      console.log("User data retrieved:", data);
       
       toast({
         title: "Login Successful",
@@ -116,7 +143,7 @@ const LoginForm = () => {
       
       // Store user info in localStorage for persistence
       localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
+      localStorage.setItem("foodieSync_userData", JSON.stringify(data));
       
       console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       
