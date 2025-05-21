@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +14,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { LogOut, Search, User, Building, ClipboardList, Settings } from "lucide-react";
 
 // Define form schema for restaurant request
 const requestFormSchema = z.object({
@@ -129,6 +128,16 @@ const NGODashboard = () => {
     form.setValue("restaurantId", restaurant.id);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("foodieSync_userType");
+    localStorage.removeItem("foodieSync_userData");
+    toast({
+      title: "Success",
+      description: "You have been logged out successfully",
+    });
+    navigate("/login");
+  };
+
   const filteredRestaurants = searchQuery
     ? restaurants.filter(restaurant => 
         restaurant.restaurant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -191,79 +200,121 @@ const NGODashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header with User Info and Logout */}
+      <header className="bg-white border-b border-gray-200 py-4 px-6 shadow-sm">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Building className="h-6 w-6 text-blue-600" />
+            <h1 className="text-xl font-semibold text-gray-800">
+              {userData?.Name || "Organization"} Portal
+            </h1>
+          </div>
+          <Button 
+            variant="ghost" 
+            className="flex items-center gap-2 hover:bg-gray-100"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </Button>
+        </div>
+      </header>
+
       <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8">NGO Dashboard</h1>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800">Welcome, {userData?.Name}</h2>
+          <p className="text-gray-600 mt-1">
+            Manage your organization profile and food requests
+          </p>
+        </div>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-            <TabsTrigger value="profile">NGO Profile</TabsTrigger>
-            <TabsTrigger value="food-requests">Food Requests</TabsTrigger>
+          <TabsList className="grid w-full md:w-[500px] grid-cols-3 mb-8 bg-gray-100 p-1 rounded-lg">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="food-requests" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Food Requests
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>NGO Profile</CardTitle>
-                <CardDescription>View and manage your NGO details</CardDescription>
+            <Card className="border-none shadow-md">
+              <CardHeader className="bg-blue-50 border-b pb-8 pt-8">
+                <CardTitle className="text-2xl font-bold text-blue-800">Organization Profile</CardTitle>
+                <CardDescription className="text-blue-600">
+                  View and manage your organization details
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-8">
                 {userData && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Name</h3>
-                        <p className="text-lg font-semibold">{userData.Name}</p>
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Organization Name</h3>
+                        <p className="text-xl font-semibold text-gray-800">{userData.Name}</p>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                        <p className="text-lg">{userData.Email}</p>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Email Address</h3>
+                        <p className="text-xl text-gray-800">{userData.Email}</p>
                       </div>
                     </div>
                     
-                    {userData.Phone_Number && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-                        <p className="text-lg">{userData.Phone_Number}</p>
-                      </div>
-                    )}
-                    
-                    {userData.Address && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Address</h3>
-                        <p className="text-lg">{userData.Address}</p>
-                      </div>
-                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {userData.Phone_Number && (
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-medium text-gray-500">Phone Number</h3>
+                          <p className="text-xl text-gray-800">{userData.Phone_Number}</p>
+                        </div>
+                      )}
+                      
+                      {userData.Address && (
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-medium text-gray-500">Address</h3>
+                          <p className="text-xl text-gray-800">{userData.Address}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
-                <Button variant="outline">Edit Profile</Button>
+              <CardFooter className="bg-gray-50 py-4 flex justify-end border-t">
+                <Button variant="outline" className="mr-2">Edit Profile</Button>
+                <Button>Update Password</Button>
               </CardFooter>
             </Card>
           </TabsContent>
           
           <TabsContent value="food-requests" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="border-none shadow-md h-full">
                 <CardHeader>
-                  <CardTitle>New Food Request</CardTitle>
-                  <CardDescription>Request food from restaurants</CardDescription>
+                  <CardTitle className="flex items-center">
+                    <span className="text-green-600 mr-2">●</span>
+                    New Food Request
+                  </CardTitle>
+                  <CardDescription>Request food from partner restaurants</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-6">
                     <div className="relative mb-4">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search restaurants..."
-                        className="pl-8"
+                        placeholder="Search restaurants by name or location..."
+                        className="pl-8 border-gray-300"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
                     
-                    <div className="border rounded-md h-48 overflow-y-auto">
+                    <div className="border rounded-md h-48 overflow-y-auto shadow-inner">
                       {filteredRestaurants.length > 0 ? (
                         <Table>
                           <TableHeader>
@@ -277,7 +328,7 @@ const NGODashboard = () => {
                             {filteredRestaurants.map((restaurant) => (
                               <TableRow 
                                 key={restaurant.id}
-                                className={selectedRestaurant?.id === restaurant.id ? "bg-muted" : ""}
+                                className={selectedRestaurant?.id === restaurant.id ? "bg-blue-50" : ""}
                               >
                                 <TableCell className="font-medium">{restaurant.restaurant_name}</TableCell>
                                 <TableCell>{restaurant.address || "N/A"}</TableCell>
@@ -286,6 +337,7 @@ const NGODashboard = () => {
                                     variant="ghost" 
                                     size="sm" 
                                     onClick={() => handleRestaurantSelect(restaurant)}
+                                    className="hover:bg-blue-100"
                                   >
                                     Select
                                   </Button>
@@ -302,7 +354,7 @@ const NGODashboard = () => {
                     </div>
                     
                     {selectedRestaurant && (
-                      <div className="mt-4 p-3 border rounded-md bg-muted">
+                      <div className="mt-4 p-3 border rounded-md bg-blue-50 text-blue-800 border-blue-200">
                         <p className="font-medium">Selected: {selectedRestaurant.restaurant_name}</p>
                       </div>
                     )}
@@ -317,40 +369,42 @@ const NGODashboard = () => {
                           <FormItem>
                             <FormLabel>Request Title</FormLabel>
                             <FormControl>
-                              <Input placeholder="Food Request Title" {...field} />
+                              <Input placeholder="Food Request Title" className="border-gray-300" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       
-                      <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantity (servings)</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="1" placeholder="Number of servings" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="dueDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Needed By</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantity (servings)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="1" placeholder="Number of servings" className="border-gray-300" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="dueDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Needed By</FormLabel>
+                              <FormControl>
+                                <Input type="date" className="border-gray-300" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       
                       <FormField
                         control={form.control}
@@ -360,8 +414,8 @@ const NGODashboard = () => {
                             <FormLabel>Description</FormLabel>
                             <FormControl>
                               <Textarea 
-                                placeholder="Describe your requirements" 
-                                className="min-h-24"
+                                placeholder="Describe your specific requirements, dietary restrictions, etc." 
+                                className="min-h-24 border-gray-300"
                                 {...field} 
                               />
                             </FormControl>
@@ -382,16 +436,19 @@ const NGODashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="border-none shadow-md h-full">
                 <CardHeader>
-                  <CardTitle>Pending Requests</CardTitle>
-                  <CardDescription>Track your pending requests</CardDescription>
+                  <CardTitle className="flex items-center">
+                    <span className="text-amber-500 mr-2">●</span>
+                    Pending Requests
+                  </CardTitle>
+                  <CardDescription>Track the status of your food requests</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {pendingRequests.length > 0 ? (
-                    <div className="border rounded-md overflow-x-auto">
+                    <div className="border rounded-md overflow-x-auto shadow-inner">
                       <Table>
-                        <TableHeader>
+                        <TableHeader className="bg-gray-50">
                           <TableRow>
                             <TableHead>Request</TableHead>
                             <TableHead>Quantity</TableHead>
@@ -409,6 +466,7 @@ const NGODashboard = () => {
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                   request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
                                   request.status === 'accepted' ? 'bg-green-100 text-green-800' : 
+                                  request.status === 'completed' ? 'bg-blue-100 text-blue-800' : 
                                   'bg-red-100 text-red-800'
                                 }`}>
                                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
@@ -420,16 +478,64 @@ const NGODashboard = () => {
                       </Table>
                     </div>
                   ) : (
-                    <div className="border rounded-md p-6 text-center text-muted-foreground">
-                      No pending requests found
+                    <div className="border rounded-md p-6 text-center text-muted-foreground bg-gray-50 h-full flex items-center justify-center">
+                      <div>
+                        <p className="text-gray-500 mb-4">No pending requests found</p>
+                        <Button variant="outline" size="sm" onClick={() => document.querySelector('[data-state="inactive"][data-value="food-requests"]')?.click()}>
+                          Create your first request
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <Card className="border-none shadow-md">
+              <CardHeader className="bg-gray-50 border-b">
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>Manage your account preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Notification Preferences</h3>
+                    <p className="text-sm text-gray-500">
+                      Control how and when you receive updates about your requests
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <Button variant="outline" className="justify-start">
+                        Configure Email Notifications
+                      </Button>
+                      <Button variant="outline" className="justify-start">
+                        Configure SMS Notifications
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-4 border-t">
+                    <h3 className="text-lg font-medium pt-4">Security Settings</h3>
+                    <p className="text-sm text-gray-500">
+                      Manage your account security and password
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <Button variant="outline" className="justify-start">
+                        Change Password
+                      </Button>
+                      <Button variant="outline" className="justify-start">
+                        Two-Factor Authentication
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
+      
       <Footer />
     </div>
   );
