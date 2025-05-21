@@ -14,13 +14,17 @@ const RestaurantDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurantData, setRestaurantData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is logged in as restaurant
     const userType = localStorage.getItem("foodieSync_userType");
     const userData = localStorage.getItem("foodieSync_userData");
 
+    console.log("Dashboard check:", { userType, userData });
+
     if (userType !== "restaurant" || !userData) {
+      console.log("Not authenticated as restaurant, redirecting to login");
       toast({
         title: "Unauthorized",
         description: "Please login as a restaurant to access this page",
@@ -30,14 +34,36 @@ const RestaurantDashboard = () => {
       return;
     }
 
-    // Set restaurant data
-    setRestaurantData(JSON.parse(userData));
+    try {
+      // Set restaurant data
+      const parsedData = JSON.parse(userData);
+      console.log("Restaurant data loaded:", parsedData);
+      setRestaurantData(parsedData);
+    } catch (error) {
+      console.error("Error parsing restaurant data:", error);
+      toast({
+        title: "Error",
+        description: "Invalid restaurant data. Please login again.",
+        variant: "destructive",
+      });
+      navigate("/login");
+    } finally {
+      setIsLoading(false);
+    }
   }, [navigate, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
 
   if (!restaurantData) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p>Loading dashboard...</p>
+        <p>Error loading restaurant data. Please try logging in again.</p>
       </div>
     );
   }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,31 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    const checkExistingSession = () => {
+      const userType = localStorage.getItem("foodieSync_userType");
+      const userData = localStorage.getItem("foodieSync_userData");
+      
+      if (userType && userData) {
+        // Redirect to appropriate dashboard based on user type
+        if (userType === "restaurant") {
+          navigate("/restaurant-dashboard");
+        } else if (userType === "user") {
+          navigate("/user-dashboard");
+        } else if (userType === "ngo") {
+          navigate("/ngo-dashboard");
+        } else if (userType === "packing") {
+          navigate("/packing-dashboard");
+        } else if (userType === "admin") {
+          navigate("/admin-dashboard");
+        }
+      }
+    };
+    
+    checkExistingSession();
+  }, [navigate]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +59,6 @@ const LoginForm = () => {
     
     try {
       // Query the appropriate table based on user type
-      let result;
       let tableName;
       
       switch (userType) {
@@ -54,21 +79,26 @@ const LoginForm = () => {
           break;
       }
       
-      result = await supabase
+      console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
+      
+      const { data, error } = await supabase
         .from(tableName)
-        .select()
+        .select("*")
         .eq("Email", email)
-        .eq("Password", password)
-        .single();
+        .eq("Password", password);
       
-      if (result.error) {
-        console.error("Login error:", result.error);
+      console.log("Login query result:", { data, error });
+      
+      if (error) {
+        console.error("Login error:", error);
+        throw new Error(error.message || "Invalid email or password");
+      }
+      
+      if (!data || data.length === 0) {
         throw new Error("Invalid email or password");
       }
       
-      if (!result.data) {
-        throw new Error("Invalid email or password");
-      }
+      const userData = data[0];
       
       toast({
         title: "Login Successful",
@@ -77,7 +107,9 @@ const LoginForm = () => {
       
       // Store user info in localStorage for persistence
       localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(result.data));
+      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
+      
+      console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       
       // Redirect based on user type
       if (userType === "restaurant") {
