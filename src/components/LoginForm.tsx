@@ -9,11 +9,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Database } from "@/integrations/supabase/types";
+
+// Define types for better TypeScript support
+type UserTypes = "restaurant" | "user" | "ngo" | "packing" | "admin";
+
+type TableData = {
+  id: number;
+  Email?: string | null;
+  Password?: string | null;
+  [key: string]: any; // Allow for other properties that might exist in each user type
+}
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userType, setUserType] = useState("restaurant");
+  const [userType, setUserType] = useState<UserTypes>("restaurant");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +74,7 @@ const LoginForm = () => {
     
     try {
       // Query the appropriate table based on user type
-      let tableName;
+      let tableName: string;
       
       switch (userType) {
         case "restaurant":
@@ -86,17 +97,18 @@ const LoginForm = () => {
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
       console.log(`Email: ${email}, Password: ${password}`);
       
-      // First, get the exact email format from database for comparison
-      // Using a more direct approach with separate exact match and case-insensitive queries
+      // Find accounts with matching email (case-insensitive)
       const { data: emailData, error: emailError } = await supabase
         .from(tableName)
         .select("*")
         .ilike("Email", email);
-      
+        
       if (emailError) {
+        console.error("Error checking email:", emailError);
         throw new Error(emailError.message || "Error checking email");
       }
       
+      // Check if any emails were found
       if (!emailData || emailData.length === 0) {
         console.log("No matching email found in database");
         setLoginError("Invalid email or password");
@@ -105,8 +117,15 @@ const LoginForm = () => {
       
       console.log("Found potential email matches:", emailData);
       
-      // Now check if any of those emails match with the provided password
-      const matchingUser = emailData.find(user => user.Password === password);
+      // Check if any of the returned accounts have the correct password
+      // TypeScript safe approach by properly typing the data
+      const matchingUser = emailData.find(user => {
+        // Ensure we're safely accessing the Password property
+        if (user && typeof user === 'object' && 'Password' in user) {
+          return user.Password === password;
+        }
+        return false;
+      });
       
       if (!matchingUser) {
         console.log("Password doesn't match for any found email");
@@ -164,7 +183,7 @@ const LoginForm = () => {
           </CardDescription>
         </CardHeader>
         
-        <Tabs defaultValue="restaurant" onValueChange={setUserType} className="w-full">
+        <Tabs defaultValue={userType} onValueChange={(value) => setUserType(value as UserTypes)} className="w-full">
           <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="restaurant">Restaurant</TabsTrigger>
             <TabsTrigger value="user">User</TabsTrigger>
