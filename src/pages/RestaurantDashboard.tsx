@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
 import FoodWastageModel from "@/components/restaurant/FoodWastageModel";
@@ -15,6 +16,7 @@ const RestaurantDashboard = () => {
   const { toast } = useToast();
   const [restaurantData, setRestaurantData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
     // Check if user is logged in as restaurant
@@ -25,12 +27,17 @@ const RestaurantDashboard = () => {
 
     if (userType !== "restaurant" || !userData) {
       console.log("Not authenticated as restaurant, redirecting to login");
+      setAuthError("Please login as a restaurant to access this page");
       toast({
         title: "Unauthorized",
         description: "Please login as a restaurant to access this page",
         variant: "destructive",
       });
-      navigate("/login");
+      
+      // Short delay before redirect to ensure toast is shown
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
       return;
     }
 
@@ -38,15 +45,31 @@ const RestaurantDashboard = () => {
       // Set restaurant data
       const parsedData = JSON.parse(userData);
       console.log("Restaurant data loaded:", parsedData);
+      
+      // Check if the data has expected restaurant properties
+      if (!parsedData || !parsedData.Restaurant_Name) {
+        throw new Error("Invalid restaurant data format");
+      }
+      
       setRestaurantData(parsedData);
+      setAuthError("");
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
+      setAuthError("Invalid restaurant data. Please login again.");
       toast({
         title: "Error",
         description: "Invalid restaurant data. Please login again.",
         variant: "destructive",
       });
-      navigate("/login");
+      
+      // Clear invalid data
+      localStorage.removeItem("foodieSync_userType");
+      localStorage.removeItem("foodieSync_userData");
+      
+      // Short delay before redirect to ensure toast is shown
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +79,22 @@ const RestaurantDashboard = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="flex items-center justify-center h-screen flex-col gap-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertDescription>{authError}</AlertDescription>
+        </Alert>
+        <button 
+          onClick={() => navigate("/login")}
+          className="px-4 py-2 bg-foodie-green text-white rounded hover:bg-foodie-green-dark"
+        >
+          Go to Login
+        </button>
       </div>
     );
   }

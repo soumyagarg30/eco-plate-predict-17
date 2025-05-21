@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   
   // Check if user is already logged in on component mount
   useEffect(() => {
@@ -44,9 +46,11 @@ const LoginForm = () => {
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError("");
     
     // Basic validation
     if (!email || !password) {
+      setLoginError("Please fill in all fields");
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -80,6 +84,7 @@ const LoginForm = () => {
       }
       
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
+      console.log(`Email: ${email}, Password: ${password}`);
       
       const { data, error } = await supabase
         .from(tableName)
@@ -91,14 +96,18 @@ const LoginForm = () => {
       
       if (error) {
         console.error("Login error:", error);
+        setLoginError(error.message || "Invalid email or password");
         throw new Error(error.message || "Invalid email or password");
       }
       
       if (!data || data.length === 0) {
+        console.log("No matching user found in the database");
+        setLoginError("Invalid email or password");
         throw new Error("Invalid email or password");
       }
       
       const userData = data[0];
+      console.log("User data retrieved:", userData);
       
       toast({
         title: "Login Successful",
@@ -125,6 +134,7 @@ const LoginForm = () => {
       }
     } catch (error: any) {
       console.error("Login error:", error);
+      setLoginError(error.message || "Invalid email or password");
       toast({
         title: "Login Failed",
         description: error.message || "Invalid email or password",
@@ -155,6 +165,12 @@ const LoginForm = () => {
             <TabsTrigger value="packing">Packing</TabsTrigger>
             <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
+          
+          {loginError && (
+            <Alert variant="destructive" className="mb-4 mx-6">
+              <AlertDescription>{loginError}</AlertDescription>
+            </Alert>
+          )}
           
           {["restaurant", "user", "ngo", "packing", "admin"].map((type) => (
             <TabsContent key={type} value={type}>
