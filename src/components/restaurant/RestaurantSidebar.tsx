@@ -1,9 +1,10 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { Home, Menu as MenuIcon, Trash2, Package, ChefHat, LogOut } from "lucide-react";
 
 type RestaurantSidebarProps = {
   restaurantName: string;
@@ -11,6 +12,7 @@ type RestaurantSidebarProps = {
 
 const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -36,6 +38,10 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
       .join('')
       .toUpperCase()
       .substring(0, 2);
+  };
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
 
   return (
@@ -76,24 +82,52 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
       </div>
       
       <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-2 px-2">
-          {[
-            { name: "Dashboard", icon: "home", path: "/restaurant-dashboard" },
-            { name: "Menu", icon: "menu", path: "/restaurant-dashboard?tab=menu" },
-            { name: "Food Waste Management", icon: "trash-2", path: "/restaurant-waste-management" },
-            { name: "Food Preparation", icon: "home", path: "/restaurant-food-preparation" },
-            { name: "Sustainable Packaging", icon: "home", path: "/restaurant-packaging" },
-          ].map((item) => (
-            <li key={item.name}>
-              <Link
-                to={item.path}
-                className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                <span className="material-icons text-gray-700">{item.icon}</span>
-                {!isCollapsed && <span className="ml-3">{item.name}</span>}
-              </Link>
-            </li>
-          ))}
+        <ul className="space-y-1 px-3">
+          <li>
+            <Link
+              to="/restaurant-dashboard"
+              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-dashboard') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Home className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Dashboard</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-dashboard?tab=menu"
+              className={`flex items-center p-3 rounded-lg ${location.pathname === "/restaurant-dashboard" && location.search.includes("tab=menu") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <MenuIcon className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Menu</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-waste-management"
+              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-waste-management') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Trash2 className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Food Waste Management</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-food-preparation"
+              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-food-preparation') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <ChefHat className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Food Preparation</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-packaging"
+              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-packaging') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Package className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Sustainable Packaging</span>}
+            </Link>
+          </li>
         </ul>
       </nav>
       
@@ -103,8 +137,8 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
           className={`w-full justify-center text-gray-700 ${isCollapsed ? 'px-2' : ''}`}
           onClick={handleLogout}
         >
-          <span className="material-icons mr-2">logout</span>
-          {!isCollapsed && "Logout"}
+          <LogOut className="w-5 h-5" />
+          {!isCollapsed && <span className="ml-2">Logout</span>}
         </Button>
       </div>
     </div>
