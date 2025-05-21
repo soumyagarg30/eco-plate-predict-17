@@ -53,7 +53,6 @@ const RestaurantDashboard = () => {
       
       setRestaurantData(parsedData);
       setAuthError("");
-      setIsLoading(false);
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
       setAuthError("Invalid restaurant data. Please login again.");
@@ -71,6 +70,8 @@ const RestaurantDashboard = () => {
       setTimeout(() => {
         navigate("/login");
       }, 1500);
+    } finally {
+      setIsLoading(false);
     }
   }, [navigate, toast]);
 

@@ -86,11 +86,11 @@ const LoginForm = () => {
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
       console.log(`Email: ${email}, Password: ${password}`);
       
-      // First check if the email exists in the database
+      // Check if the email exists in the database (case-insensitive search)
       const { data: emailCheck, error: emailError } = await supabase
         .from(tableName)
         .select("Email")
-        .eq("Email", email);
+        .ilike("Email", email);
       
       if (emailError) {
         console.error("Email check error:", emailError);
@@ -109,32 +109,25 @@ const LoginForm = () => {
       const { data, error } = await supabase
         .from(tableName)
         .select("*")
-        .eq("Email", email)
-        .eq("Password", password)
-        .single();
+        .ilike("Email", email)
+        .eq("Password", password);
       
       console.log("Login query result:", { data, error });
       
       if (error) {
-        if (error.code === 'PGRST116') {
-          // This is the "no rows returned" error code
-          console.log("Password doesn't match");
-          setLoginError("Invalid email or password");
-          throw new Error("Invalid email or password");
-        } else {
-          console.error("Login error:", error);
-          setLoginError(error.message || "Error during login");
-          throw new Error(error.message || "Error during login");
-        }
+        console.error("Login error:", error);
+        setLoginError(error.message || "Error during login");
+        throw new Error(error.message || "Error during login");
       }
       
-      if (!data) {
-        console.log("No data returned after successful query");
+      if (!data || data.length === 0) {
+        console.log("Password doesn't match");
         setLoginError("Invalid email or password");
         throw new Error("Invalid email or password");
       }
       
-      console.log("User data retrieved:", data);
+      const userData = data[0];
+      console.log("User data retrieved:", userData);
       
       toast({
         title: "Login Successful",
@@ -143,7 +136,7 @@ const LoginForm = () => {
       
       // Store user info in localStorage for persistence
       localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(data));
+      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
       
       console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       
