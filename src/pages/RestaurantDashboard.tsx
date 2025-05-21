@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -114,13 +113,13 @@ const RestaurantDashboard = () => {
           requestsData.map(async (request) => {
             const { data: ngoData } = await supabase
               .from("Ngo's")
-              .select("Name")
+              .select("name")
               .eq("id", request.requester_id)
               .single();
             
             return {
               ...request,
-              ngo_name: ngoData?.Name || "Unknown NGO",
+              ngo_name: ngoData?.name || "Unknown NGO",
             };
           })
         );

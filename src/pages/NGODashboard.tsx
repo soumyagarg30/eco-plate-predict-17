@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -201,29 +202,11 @@ const NGODashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header with User Info and Logout */}
-      <header className="bg-white border-b border-gray-200 py-4 px-6 shadow-sm">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Building className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-semibold text-gray-800">
-              {userData?.Name || "Organization"} Portal
-            </h1>
-          </div>
-          <Button 
-            variant="ghost" 
-            className="flex items-center gap-2 hover:bg-gray-100"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
-        </div>
-      </header>
-
+      <Navbar />
+      
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Welcome, {userData?.Name}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Welcome, {userData?.name}</h2>
           <p className="text-gray-600 mt-1">
             Manage your organization profile and food requests
           </p>
@@ -259,26 +242,26 @@ const NGODashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-1">
                         <h3 className="text-sm font-medium text-gray-500">Organization Name</h3>
-                        <p className="text-xl font-semibold text-gray-800">{userData.Name}</p>
+                        <p className="text-xl font-semibold text-gray-800">{userData.name}</p>
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-sm font-medium text-gray-500">Email Address</h3>
-                        <p className="text-xl text-gray-800">{userData.Email}</p>
+                        <p className="text-xl text-gray-800">{userData.email}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {userData.Phone_Number && (
+                      {userData.phone_number && (
                         <div className="space-y-1">
                           <h3 className="text-sm font-medium text-gray-500">Phone Number</h3>
-                          <p className="text-xl text-gray-800">{userData.Phone_Number}</p>
+                          <p className="text-xl text-gray-800">{userData.phone_number}</p>
                         </div>
                       )}
                       
-                      {userData.Address && (
+                      {userData.address && (
                         <div className="space-y-1">
                           <h3 className="text-sm font-medium text-gray-500">Address</h3>
-                          <p className="text-xl text-gray-800">{userData.Address}</p>
+                          <p className="text-xl text-gray-800">{userData.address}</p>
                         </div>
                       )}
                     </div>
@@ -481,7 +464,16 @@ const NGODashboard = () => {
                     <div className="border rounded-md p-6 text-center text-muted-foreground bg-gray-50 h-full flex items-center justify-center">
                       <div>
                         <p className="text-gray-500 mb-4">No pending requests found</p>
-                        <Button variant="outline" size="sm" onClick={() => document.querySelector('[data-state="inactive"][data-value="food-requests"]')?.click()}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            const element = document.querySelector('[data-value="food-requests"]');
+                            if (element) {
+                              (element as HTMLButtonElement).focus();
+                            }
+                          }}
+                        >
                           Create your first request
                         </Button>
                       </div>
@@ -531,6 +523,13 @@ const NGODashboard = () => {
                   </div>
                 </div>
               </CardContent>
+              <CardFooter className="bg-gray-50 border-t mt-6 flex justify-end">
+                <Button variant="outline" className="mr-2">Cancel</Button>
+                <Button variant="destructive" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
