@@ -80,8 +80,9 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
           {[
             { name: "Dashboard", icon: "home", path: "/restaurant-dashboard" },
             { name: "Menu", icon: "menu", path: "/restaurant-dashboard?tab=menu" },
-            { name: "Analytics", icon: "bar-chart", path: "/restaurant-analytics" },
-            { name: "Settings", icon: "settings", path: "/restaurant-settings" },
+            { name: "Food Waste Management", icon: "trash-2", path: "/restaurant-waste-management" },
+            { name: "Food Preparation", icon: "home", path: "/restaurant-food-preparation" },
+            { name: "Sustainable Packaging", icon: "home", path: "/restaurant-packaging" },
           ].map((item) => (
             <li key={item.name}>
               <Link
@@ -99,7 +100,7 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
       <div className="p-4 border-t border-gray-200">
         <Button
           variant="outline"
-          className={`w-full justify-center ${isCollapsed ? 'px-2' : ''}`}
+          className={`w-full justify-center text-gray-700 ${isCollapsed ? 'px-2' : ''}`}
           onClick={handleLogout}
         >
           <span className="material-icons mr-2">logout</span>

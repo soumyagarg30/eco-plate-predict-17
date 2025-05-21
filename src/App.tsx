@@ -18,6 +18,9 @@ import NotFound from "./pages/NotFound";
 import NGORegister from "./pages/NGORegister";
 import PackingRegister from "./pages/PackingRegister";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import RestaurantWasteManagement from "./pages/RestaurantWasteManagement";
+import RestaurantFoodPreparation from "./pages/RestaurantFoodPreparation";
+import RestaurantPackaging from "./pages/RestaurantPackaging";
 import UserDashboard from "./pages/UserDashboard";
 import NGODashboard from "./pages/NGODashboard";
 import PackingDashboard from "./pages/PackingDashboard";
@@ -42,6 +45,9 @@ const App = () => (
           <Route path="/ngo-register" element={<NGORegister />} />
           <Route path="/packing-register" element={<PackingRegister />} />
           <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
+          <Route path="/restaurant-waste-management" element={<RestaurantWasteManagement />} />
+          <Route path="/restaurant-food-preparation" element={<RestaurantFoodPreparation />} />
+          <Route path="/restaurant-packaging" element={<RestaurantPackaging />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
           <Route path="/packing-dashboard" element={<PackingDashboard />} />
