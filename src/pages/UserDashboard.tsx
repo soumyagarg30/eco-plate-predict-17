@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
@@ -8,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Star, MapPin, Clock, UtensilsCrossed, Search, Phone, Mail } from "lucide-react";
+import { Star, MapPin, Clock, UtensilsCrossed, Search, Phone, Mail, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UserNavbar from "@/components/user/UserNavbar";
 import UserPreferencesForm from "@/components/user/UserPreferencesForm";
