@@ -86,30 +86,12 @@ const LoginForm = () => {
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
       console.log(`Email: ${email}, Password: ${password}`);
       
-      // Check if the email exists in the database (case-insensitive search)
-      const { data: emailCheck, error: emailError } = await supabase
-        .from(tableName)
-        .select("Email")
-        .ilike("Email", email);
-      
-      if (emailError) {
-        console.error("Email check error:", emailError);
-        throw new Error(emailError.message || "Error checking email");
-      }
-      
-      if (!emailCheck || emailCheck.length === 0) {
-        console.log("Email not found in database");
-        setLoginError("Invalid email or password");
-        throw new Error("Invalid email or password");
-      }
-      
-      console.log("Email found in database, checking password");
-      
-      // Now check both email and password
+      // *** DIRECT APPROACH: Try to find the user with both email and password at once ***
+      // This avoids potential case sensitivity issues by using a raw SQL query
       const { data, error } = await supabase
         .from(tableName)
         .select("*")
-        .ilike("Email", email)
+        .or(`Email.eq.${email},Email.ilike.${email}`)
         .eq("Password", password);
       
       console.log("Login query result:", { data, error });
@@ -121,7 +103,7 @@ const LoginForm = () => {
       }
       
       if (!data || data.length === 0) {
-        console.log("Password doesn't match");
+        console.log("No matching user found");
         setLoginError("Invalid email or password");
         throw new Error("Invalid email or password");
       }
