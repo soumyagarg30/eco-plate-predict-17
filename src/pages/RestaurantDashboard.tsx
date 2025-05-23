@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
-import FoodPrepModel from "@/components/restaurant/FoodPrepModel";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
 import { LogOut, Clock, Check, X } from "lucide-react";
 import { DB_TABLES } from "@/utils/dbUtils";
@@ -242,7 +241,6 @@ const RestaurantDashboard = () => {
           <Tabs defaultValue="menu" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="menu">Menu Management</TabsTrigger>
-              <TabsTrigger value="prep">Food Preparation Model</TabsTrigger>
               <TabsTrigger value="requests">NGO Requests</TabsTrigger>
             </TabsList>
             
@@ -250,14 +248,6 @@ const RestaurantDashboard = () => {
               <Card className="shadow-md border-none">
                 <CardContent className="p-6">
                   <RestaurantMenu restaurantId={restaurantData.id} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="prep">
-              <Card className="shadow-md border-none">
-                <CardContent className="p-6">
-                  <FoodPrepModel restaurantId={restaurantData.id} />
                 </CardContent>
               </Card>
             </TabsContent>
