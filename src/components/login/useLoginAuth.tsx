@@ -58,8 +58,25 @@ export const useLoginAuth = () => {
     setIsLoading(true);
     
     try {
-      // Query the appropriate table based on user type
+      // First, authenticate with user_auth table
+      const { data: authData, error: authError } = await supabase
+        .from('user_auth')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .eq('user_type', userType)
+        .single();
+      
+      if (authError || !authData) {
+        console.error("Auth error:", authError);
+        throw new Error("Invalid email or password");
+      }
+      
+      console.log(`Auth successful for ${userType} user:`, authData);
+      
+      // Now fetch the user details from the appropriate table based on user type
       let tableName: string;
+      let userData;
       
       switch (userType) {
         case "restaurant":
@@ -81,45 +98,18 @@ export const useLoginAuth = () => {
           throw new Error("Invalid user type");
       }
       
-      console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
-      console.log(`Email: ${email}, Password: ${password}`);
-      
-      // Find accounts with matching email (case-insensitive)
-      const { data: emailData, error: emailError } = await supabase
-        .from(tableName as any)
-        .select("*")
-        .ilike("email", email);
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('email', email)
+        .single();
         
-      if (emailError) {
-        console.error("Error checking email:", emailError);
-        throw new Error(emailError.message || "Error checking email");
+      if (error) {
+        console.error("Error fetching user data:", error);
+        throw new Error("Error retrieving user information");
       }
       
-      // Check if any emails were found
-      if (!emailData || emailData.length === 0) {
-        console.log("No matching email found in database");
-        setLoginError("Invalid email or password");
-        throw new Error("Invalid email or password");
-      }
-      
-      console.log("Found potential email matches:", emailData);
-      
-      // Check if any of the returned accounts have the correct password
-      const matchingUser = emailData.find(user => {
-        // Ensure we're safely accessing the password property
-        if (user && typeof user === 'object' && 'password' in user) {
-          return user.password === password;
-        }
-        return false;
-      });
-      
-      if (!matchingUser) {
-        console.log("Password doesn't match for any found email");
-        setLoginError("Invalid email or password");
-        throw new Error("Invalid email or password");
-      }
-      
-      console.log("User authenticated successfully:", matchingUser);
+      userData = data;
       
       toast({
         title: "Login Successful",
@@ -128,7 +118,7 @@ export const useLoginAuth = () => {
       
       // Store user info in localStorage for persistence
       localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(matchingUser));
+      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
       
       console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       

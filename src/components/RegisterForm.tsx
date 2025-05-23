@@ -123,7 +123,7 @@ const RegisterForm = () => {
         throw insertResult.error;
       }
 
-      // Store credentials in a separate user authentication table
+      // Store credentials in user_auth table using direct query
       const authData = {
         email: formData.email,
         password: formData.password,
@@ -132,12 +132,17 @@ const RegisterForm = () => {
 
       console.log("Creating auth record:", authData);
       
+      // Using RPC call to insert into user_auth table
       const { error: authError } = await supabase
-        .from('user_auth')
-        .insert(authData);
+        .rpc('create_user_auth', {
+          p_email: formData.email,
+          p_password: formData.password,
+          p_user_type: userType
+        });
       
       if (authError) {
         console.warn("Failed to create auth record, but user was created:", authError);
+        // Continue since the main user record was created
       }
 
       toast({
