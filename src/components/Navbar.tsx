@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,8 +32,8 @@ const Navbar = () => {
 
         {/* Login/Register Buttons for Desktop */}
         <div className="hidden md:flex items-center gap-2">
-          <Button asChild variant="outline" className="text-white border-white hover:bg-foodie-green hover:border-white">
-            <Link to="/login">Login</Link>
+          <Button asChild className="bg-foodie-yellow hover:bg-foodie-yellow-dark text-foodie-green-dark">
+            <Link to="/login"><LogIn size={16} className="mr-1" /> Login</Link>
           </Button>
           <Button asChild className="bg-foodie-yellow hover:bg-foodie-yellow-dark text-foodie-green-dark">
             <Link to="/register">Register</Link>
@@ -57,8 +57,8 @@ const Navbar = () => {
             <Link to="/contact" className="hover:text-foodie-yellow transition-colors">Contact Us</Link>
             
             <div className="flex gap-2 pt-4">
-              <Button asChild variant="outline" className="text-white border-white hover:bg-foodie-green hover:border-white">
-                <Link to="/login">Login</Link>
+              <Button asChild className="bg-foodie-yellow hover:bg-foodie-yellow-dark text-foodie-green-dark">
+                <Link to="/login"><LogIn size={16} className="mr-1" /> Login</Link>
               </Button>
               <Button asChild className="bg-foodie-yellow hover:bg-foodie-yellow-dark text-foodie-green-dark">
                 <Link to="/register">Register</Link>
