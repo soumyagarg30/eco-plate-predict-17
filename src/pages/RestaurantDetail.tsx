@@ -1,19 +1,15 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { DB_TABLES, RestaurantDetails } from "@/utils/dbUtils";
 import UserSidebar from "@/components/user/UserSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantRatingForm from "@/components/user/RestaurantRatingForm";
-import { Star } from "lucide-react";
 
 interface MenuItem {
   id: string;
@@ -22,6 +18,7 @@ interface MenuItem {
   price: number;
   is_vegetarian: boolean | null;
   is_vegan: boolean | null;
+  carbon_footprint: number | null;
 }
 
 interface OrderItem {
@@ -65,6 +62,7 @@ const RestaurantDetail = () => {
     try {
       const parsedData = JSON.parse(userDataString);
       setUserData(parsedData);
+      console.log("User data loaded:", parsedData);
       
       // Fetch restaurant details and menu items
       fetchRestaurantDetails();
@@ -86,9 +84,10 @@ const RestaurantDetail = () => {
 
   const fetchRestaurantDetails = async () => {
     try {
-      setIsLoading(true);
       if (!restaurantId) return;
 
+      console.log("Fetching restaurant details for ID:", restaurantId);
+      
       const { data, error } = await supabase
         .from(DB_TABLES.RESTAURANTS)
         .select("*")
@@ -101,6 +100,7 @@ const RestaurantDetail = () => {
       }
       
       if (data) {
+        console.log("Restaurant details fetched:", data);
         setRestaurant(data as RestaurantDetails);
       }
     } catch (error) {
@@ -119,9 +119,11 @@ const RestaurantDetail = () => {
     try {
       if (!restaurantId) return;
 
+      console.log("Fetching menu items for restaurant ID:", restaurantId);
+
       const { data, error } = await supabase
         .from("restaurant_menu_items")
-        .select("id, name, description, price, is_vegetarian, is_vegan")
+        .select("id, name, description, price, is_vegetarian, is_vegan, carbon_footprint")
         .eq("restaurant_id", restaurantId)
         .eq("is_available", true);
       
@@ -131,6 +133,7 @@ const RestaurantDetail = () => {
       }
       
       if (data) {
+        console.log("Menu items fetched:", data);
         setMenuItems(data as MenuItem[]);
       }
     } catch (error) {
@@ -354,31 +357,44 @@ const RestaurantDetail = () => {
                   {menuItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {menuItems.map((menuItem) => (
-                        <Card key={menuItem.id}>
+                        <Card key={menuItem.id} className="hover:shadow-md transition-shadow">
                           <CardContent className="p-4">
-                            <div className="flex justify-between">
-                              <div>
-                                <h3 className="font-medium">{menuItem.name}</h3>
-                                <p className="text-sm text-gray-500">{menuItem.description || "No description"}</p>
-                                <p className="text-sm mt-1">
-                                  {menuItem.is_vegetarian && <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mr-1">Veg</span>}
-                                  {menuItem.is_vegan && <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mr-1">Vegan</span>}
-                                </p>
-                                <p className="font-medium mt-2">${menuItem.price.toFixed(2)}</p>
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <h3 className="font-medium text-lg">{menuItem.name}</h3>
+                                {menuItem.description && (
+                                  <p className="text-gray-600 text-sm mt-1 line-clamp-2">{menuItem.description}</p>
+                                )}
+                                <div className="flex gap-1 mt-2">
+                                  {menuItem.is_vegetarian && <Badge variant="secondary" className="text-xs">Vegetarian</Badge>}
+                                  {menuItem.is_vegan && <Badge variant="secondary" className="text-xs">Vegan</Badge>}
+                                  {menuItem.carbon_footprint && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {menuItem.carbon_footprint}kg CO₂
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                              <Button size="sm" onClick={() => addToOrder(menuItem)}>Add</Button>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-lg text-green-600">${menuItem.price.toFixed(2)}</span>
+                              <Button size="sm" onClick={() => addToOrder(menuItem)}>
+                                Add to Order
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">No menu items available</p>
+                    <div className="text-center p-8 bg-white rounded-lg border">
+                      <p className="text-gray-500">No menu items available</p>
+                    </div>
                   )}
                 </div>
 
                 <div>
-                  <Card>
+                  <Card className="sticky top-6">
                     <CardHeader>
                       <CardTitle>Your Order</CardTitle>
                     </CardHeader>
@@ -386,8 +402,8 @@ const RestaurantDetail = () => {
                       {orderItems.length > 0 ? (
                         <div className="space-y-4">
                           {orderItems.map((orderItem) => (
-                            <div key={orderItem.menuItem.id} className="flex justify-between items-center">
-                              <div>
+                            <div key={orderItem.menuItem.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                              <div className="flex-1">
                                 <p className="font-medium">{orderItem.menuItem.name}</p>
                                 <p className="text-sm text-gray-500">
                                   ${orderItem.menuItem.price.toFixed(2)} × {orderItem.quantity}
@@ -401,7 +417,7 @@ const RestaurantDetail = () => {
                                 >
                                   -
                                 </Button>
-                                <span>{orderItem.quantity}</span>
+                                <span className="w-8 text-center">{orderItem.quantity}</span>
                                 <Button 
                                   size="sm" 
                                   variant="outline" 
@@ -414,14 +430,14 @@ const RestaurantDetail = () => {
                           ))}
                           
                           <div className="pt-4 border-t">
-                            <div className="flex justify-between font-medium">
+                            <div className="flex justify-between font-medium text-lg">
                               <span>Total:</span>
-                              <span>${calculateTotal().toFixed(2)}</span>
+                              <span className="text-green-600">${calculateTotal().toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-gray-500">No items in your order</p>
+                        <p className="text-gray-500 text-center py-4">No items in your order</p>
                       )}
                     </CardContent>
                     <CardFooter>

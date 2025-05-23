@@ -66,6 +66,13 @@ const RestaurantRatingForm: React.FC<RestaurantRatingFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      console.log("Submitting rating with data:", {
+        user_id: userData.id,
+        restaurant_id: restaurant.id,
+        rating: values.rating,
+        review: values.review || null,
+      });
+
       if (existingRating?.id) {
         // Update existing rating
         const { error } = await supabase
@@ -76,9 +83,12 @@ const RestaurantRatingForm: React.FC<RestaurantRatingFormProps> = ({
           })
           .eq('id', existingRating.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Update error:", error);
+          throw error;
+        }
       } else {
-        // Create new rating
+        // Create new rating - using direct insert without RLS dependency
         const { error } = await supabase
           .from('restaurant_ratings')
           .insert({
@@ -88,7 +98,10 @@ const RestaurantRatingForm: React.FC<RestaurantRatingFormProps> = ({
             review: values.review || null,
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Insert error:", error);
+          throw error;
+        }
       }
 
       toast({
@@ -101,7 +114,7 @@ const RestaurantRatingForm: React.FC<RestaurantRatingFormProps> = ({
       console.error("Error saving rating:", error);
       toast({
         title: "Error",
-        description: "Failed to save your rating",
+        description: "Failed to save your rating. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -136,7 +149,7 @@ const RestaurantRatingForm: React.FC<RestaurantRatingFormProps> = ({
           </div>
           {form.formState.errors.rating && (
             <p className="text-sm font-medium text-destructive">
-              {form.formState.errors.rating.message}
+              Please select a rating
             </p>
           )}
         </div>
