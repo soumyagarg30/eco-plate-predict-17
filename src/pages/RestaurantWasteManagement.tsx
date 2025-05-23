@@ -92,7 +92,7 @@ const RestaurantWasteManagement = () => {
         throw new Error("Selected NGO not found");
       }
       
-      // Create a new pickup request
+      // Create a new pickup request - note the table name is "packing_requests" not NGO's
       const { error } = await supabase
         .from("packing_requests")
         .insert({
@@ -202,7 +202,10 @@ const RestaurantWasteManagement = () => {
                     <p className="text-gray-600">{ngo.contact}</p>
                     <div className="mt-2 flex space-x-2">
                       <Button variant="outline" size="sm">Contact</Button>
-                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                      <Dialog open={dialogOpen && selectedNgo === ngo.name} onOpenChange={(open) => {
+                        setDialogOpen(open);
+                        if (open) setSelectedNgo(ngo.name);
+                      }}>
                         <DialogTrigger asChild>
                           <Button size="sm" onClick={() => setSelectedNgo(ngo.name)}>Schedule Pickup</Button>
                         </DialogTrigger>
