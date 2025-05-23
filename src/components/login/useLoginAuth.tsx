@@ -6,14 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserTypes } from "./LoginTabs";
 import { DB_TABLES } from "@/utils/dbUtils";
 
-// Define the table names based on our actual database structure
-type TableNames = 
-  "restaurants_details" | 
-  "User_Details" | 
-  "Ngo's" | 
-  "Packing_Companies" | 
-  "Admin";
-
 export const useLoginAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -74,16 +66,16 @@ export const useLoginAuth = () => {
           tableName = DB_TABLES.RESTAURANTS;
           break;
         case "user":
-          tableName = "User_Details";
+          tableName = DB_TABLES.USER_DETAILS;
           break;
         case "ngo":
           tableName = DB_TABLES.NGOS;
           break;
         case "packing":
-          tableName = "Packing_Companies";
+          tableName = DB_TABLES.PACKING_COMPANIES;
           break;
         case "admin":
-          tableName = "Admin";
+          tableName = DB_TABLES.ADMIN;
           break;
         default:
           throw new Error("Invalid user type");
