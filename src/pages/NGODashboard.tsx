@@ -1,37 +1,20 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import NGOSidebar from "@/components/ngo/NGOSidebar";
-import { LogOut, Clock, Check, X } from "lucide-react";
-import { DB_TABLES } from "@/utils/dbUtils";
-
-interface RestaurantRequest {
-  id: string;
-  request_title: string;
-  request_description: string;
-  quantity: number;
-  status: string;
-  due_date: string;
-  requester_id: number;
-  requester_type: string;
-  created_at: string;
-  restaurant_name?: string;
-}
+import FoodRequestForm from "@/components/ngo/FoodRequestForm";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const NGODashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ngoData, setNgoData] = useState<any>(null);
-  const [restaurantRequests, setRestaurantRequests] = useState<RestaurantRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [requestsLoading, setRequestsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
@@ -68,9 +51,6 @@ const NGODashboard = () => {
       
       setNgoData(parsedData);
       setAuthError("");
-      
-      // Fetch restaurant requests for this ngo
-      fetchRestaurantRequests(parsedData.id);
     } catch (error) {
       console.error("Error parsing ngo data:", error);
       setAuthError("Invalid ngo data. Please login again.");
@@ -91,78 +71,6 @@ const NGODashboard = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
-  
-  const fetchRestaurantRequests = async (ngoId: number) => {
-    setRequestsLoading(true);
-    try {
-      // Fetch requests directed to this ngo
-      const { data: requestsData, error: requestsError } = await supabase
-        .from("packing_requests")
-        .select("*")
-        .eq("requester_type", "restaurant")
-        .eq("packing_company_id", ngoId);
-      
-      if (requestsError) throw requestsError;
-      
-      if (requestsData) {
-        // Get restaurant details for each request
-        const requestsWithRestaurantNames = await Promise.all(
-          requestsData.map(async (request) => {
-            // Use the correct table name with proper capitalization from DB_TABLES
-            const { data: restaurantData } = await supabase
-              .from(DB_TABLES.RESTAURANTS)
-              .select("restaurant_name")
-              .eq("id", request.requester_id)
-              .single();
-            
-            return {
-              ...request,
-              restaurant_name: restaurantData?.restaurant_name || "Unknown Restaurant",
-            };
-          })
-        );
-        
-        setRestaurantRequests(requestsWithRestaurantNames);
-      }
-    } catch (error) {
-      console.error("Error fetching restaurant requests:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load restaurant requests",
-        variant: "destructive",
-      });
-    } finally {
-      setRequestsLoading(false);
-    }
-  };
-  
-  const handleUpdateRequestStatus = async (requestId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from("packing_requests")
-        .update({ status: newStatus })
-        .eq("id", requestId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: `Request ${newStatus} successfully`,
-      });
-      
-      // Refresh the requests list
-      if (ngoData?.id) {
-        fetchRestaurantRequests(ngoData.id);
-      }
-    } catch (error) {
-      console.error("Error updating request status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update request status",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("foodieSync_userType");
@@ -172,11 +80,6 @@ const NGODashboard = () => {
       description: "You have been logged out successfully",
     });
     navigate("/login");
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
   };
 
   if (isLoading) {
@@ -211,16 +114,6 @@ const NGODashboard = () => {
     );
   }
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'accepted': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'completed': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'rejected': return 'bg-red-100 text-red-800 hover:bg-red-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <NGOSidebar ngoName={ngoData.name} />
@@ -246,105 +139,45 @@ const NGODashboard = () => {
         </header>
 
         <div className="flex-1 p-6 md:p-10">
-          <Card className="shadow-md border-none mb-6">
-            <CardHeader>
-              <CardTitle>Restaurant Food Requests</CardTitle>
-              <CardDescription>
-                Manage and respond to food requests from Restaurants
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {requestsLoading ? (
-                <div className="text-center py-10">
-                  <p className="text-gray-500">Loading requests...</p>
-                </div>
-              ) : restaurantRequests.length > 0 ? (
-                <div className="border rounded-md overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-gray-50">
-                      <TableRow>
-                        <TableHead>Restaurant</TableHead>
-                        <TableHead>Request</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Needed By</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {restaurantRequests.map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell className="font-medium">
-                            {request.restaurant_name}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{request.request_title}</div>
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
-                                {request.request_description}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{request.quantity} servings</TableCell>
-                          <TableCell>{formatDate(request.due_date)}</TableCell>
-                          <TableCell>
-                            <Badge className={getStatusBadgeClass(request.status)}>
-                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              {request.status === 'pending' && (
-                                <>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="flex items-center gap-1 border-green-500 text-green-600 hover:bg-green-50"
-                                    onClick={() => handleUpdateRequestStatus(request.id, 'accepted')}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                    Accept
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="flex items-center gap-1 border-red-500 text-red-600 hover:bg-red-50"
-                                    onClick={() => handleUpdateRequestStatus(request.id, 'rejected')}
-                                  >
-                                    <X className="h-3 w-3" />
-                                    Decline
-                                  </Button>
-                                </>
-                              )}
-                              {request.status === 'accepted' && (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="flex items-center gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-                                  onClick={() => handleUpdateRequestStatus(request.id, 'completed')}
-                                >
-                                  <Check className="h-3 w-3" />
-                                  Mark as Completed
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center p-10 border rounded-md bg-gray-50">
-                  <Clock className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                  <p className="text-gray-500 mb-2">No food requests from Restaurants yet</p>
-                  <p className="text-sm text-gray-400">
-                    When Restaurants submit food requests to your NGO, they will appear here
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="mb-8">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="food-requests">Food Requests</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="dashboard">
+              <Card className="shadow-md border-none">
+                <CardHeader>
+                  <CardTitle>Welcome to your NGO Dashboard</CardTitle>
+                  <CardDescription>
+                    Manage your organization's activities and food requests
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center p-10">
+                    <p className="text-gray-500 mb-2">Your NGO dashboard overview</p>
+                    <p className="text-sm text-gray-400">
+                      Use the tabs above to navigate to different sections
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="food-requests">
+              <Card className="shadow-md border-none">
+                <CardHeader>
+                  <CardTitle>Submit Food Request</CardTitle>
+                  <CardDescription>
+                    Request food from restaurants for your organization
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FoodRequestForm ngoId={ngoData.id} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
