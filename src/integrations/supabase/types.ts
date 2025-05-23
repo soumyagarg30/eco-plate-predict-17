@@ -159,13 +159,6 @@ export type Database = {
             referencedRelation: "restaurant_menu_items"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "user_order_details"
-            referencedColumns: ["id"]
-          },
         ]
       }
       Packing_Companies: {
@@ -454,69 +447,6 @@ export type Database = {
           phone_number?: string | null
         }
         Relationships: []
-      }
-      user_order_details: {
-        Row: {
-          carbon_footprint: number | null
-          delivery_address: string | null
-          delivery_type: string
-          estimated_delivery_time: string | null
-          id: string
-          order_date: string
-          payment_method: string | null
-          payment_status: string | null
-          restaurant_id: number
-          special_instructions: string | null
-          status: string
-          total_amount: number
-          user_id: number
-        }
-        Insert: {
-          carbon_footprint?: number | null
-          delivery_address?: string | null
-          delivery_type?: string
-          estimated_delivery_time?: string | null
-          id?: string
-          order_date?: string
-          payment_method?: string | null
-          payment_status?: string | null
-          restaurant_id: number
-          special_instructions?: string | null
-          status?: string
-          total_amount: number
-          user_id: number
-        }
-        Update: {
-          carbon_footprint?: number | null
-          delivery_address?: string | null
-          delivery_type?: string
-          estimated_delivery_time?: string | null
-          id?: string
-          order_date?: string
-          payment_method?: string | null
-          payment_status?: string | null
-          restaurant_id?: number
-          special_instructions?: string | null
-          status?: string
-          total_amount?: number
-          user_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_order_details_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "Restaurants_Details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_order_details_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "User_Details"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_orders: {
         Row: {

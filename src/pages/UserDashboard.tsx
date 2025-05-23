@@ -1,15 +1,14 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import UserSidebar from "@/components/user/UserSidebar";
-import { LogOut } from "lucide-react";
-import { DB_TABLES } from "@/utils/dbUtils";
+import { DB_TABLES, RestaurantDetails } from "@/utils/dbUtils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Restaurant {
@@ -26,6 +25,7 @@ const UserDashboard = () => {
   const { toast } = useToast();
   const [userData, setUserData] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState("");
 
@@ -55,6 +55,8 @@ const UserDashboard = () => {
       
       // Fetch restaurants from database
       fetchRestaurants();
+      // Fetch user's recent orders
+      fetchRecentOrders(parsedData.id);
     } catch (error) {
       console.error("Error parsing user data:", error);
       setAuthError("Invalid user data. Please login again.");
@@ -71,7 +73,8 @@ const UserDashboard = () => {
     try {
       const { data, error } = await supabase
         .from(DB_TABLES.RESTAURANTS)
-        .select("id, restaurant_name, address, phone_number, email, created_at");
+        .select("id, restaurant_name, address, phone_number, email, created_at")
+        .limit(5);
       
       if (error) {
         console.error("Error fetching restaurants:", error);
@@ -88,6 +91,34 @@ const UserDashboard = () => {
         description: "Failed to load restaurants",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchRecentOrders = async (userId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_orders")
+        .select(`
+          id, 
+          order_date, 
+          total_amount, 
+          status, 
+          ${DB_TABLES.RESTAURANTS}:restaurant_id (restaurant_name)
+        `)
+        .eq("user_id", userId)
+        .order("order_date", { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching recent orders:", error);
+        throw error;
+      }
+
+      if (data) {
+        setRecentOrders(data);
+      }
+    } catch (error) {
+      console.error("Error fetching recent orders:", error);
     }
   };
 
@@ -131,39 +162,45 @@ const UserDashboard = () => {
               Welcome, {userData?.name}!
             </h1>
             <p className="text-gray-600">
-              Explore restaurants and manage your preferences
+              Explore restaurants and manage your orders
             </p>
           </header>
 
-          <section className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
-                <CardTitle>Nearby Restaurants</CardTitle>
+                <CardTitle>Recent Orders</CardTitle>
                 <CardDescription>
-                  Discover restaurants in your area
+                  Your most recent food orders
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {restaurants.length > 0 ? (
+                {recentOrders.length > 0 ? (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Address</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Email</TableHead>
+                          <TableHead>Restaurant</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {restaurants.map((restaurant) => (
-                          <TableRow key={restaurant.id}>
+                        {recentOrders.map((order) => (
+                          <TableRow key={order.id}>
                             <TableCell className="font-medium">
-                              {restaurant.restaurant_name}
+                              {order[DB_TABLES.RESTAURANTS]?.restaurant_name || "Unknown"}
                             </TableCell>
-                            <TableCell>{restaurant.address || "N/A"}</TableCell>
-                            <TableCell>{restaurant.phone_number || "N/A"}</TableCell>
-                            <TableCell>{restaurant.email || "N/A"}</TableCell>
+                            <TableCell>
+                              {new Date(order.order_date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>${order.total_amount.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                {order.status}
+                              </span>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -171,21 +208,80 @@ const UserDashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center p-6 bg-gray-50 rounded-md">
-                    <p className="text-gray-500">No restaurants found</p>
+                    <p className="text-gray-500">No recent orders found</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </section>
-          
-          <Button 
-            variant="ghost" 
-            className="flex items-center gap-2 hover:bg-gray-100"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recommended Restaurants</CardTitle>
+                <CardDescription>
+                  Popular restaurants you might enjoy
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {restaurants.length > 0 ? (
+                  <div className="space-y-4">
+                    {restaurants.slice(0, 3).map((restaurant) => (
+                      <div key={restaurant.id} className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{restaurant.restaurant_name}</p>
+                          <p className="text-sm text-gray-500">{restaurant.address || "No address"}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-6 bg-gray-50 rounded-md">
+                    <p className="text-gray-500">No restaurants found</p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="ghost" 
+                  className="w-full"
+                  onClick={() => navigate("/explore-restaurants")}
+                >
+                  See All Restaurants
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button 
+                  className="w-full h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => navigate("/explore-restaurants")}
+                >
+                  <span className="text-lg">Explore Restaurants</span>
+                  <span className="text-xs font-normal">Find new places to eat</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => navigate("/user-settings")}
+                >
+                  <span className="text-lg">User Settings</span>
+                  <span className="text-xs font-normal">Manage your account</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </SidebarProvider>

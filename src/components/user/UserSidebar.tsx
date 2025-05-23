@@ -1,5 +1,5 @@
 
-import { Home, Settings, LogOut, Search, Heart } from "lucide-react";
+import { Home, Settings, LogOut, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { 
   Sidebar,
@@ -53,7 +53,7 @@ const UserSidebar = ({ userName }: UserSidebarProps) => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  isActive={true} 
+                  isActive={window.location.pathname === "/user-dashboard"} 
                   onClick={() => navigate("/user-dashboard")}
                 >
                   <Home className="h-4 w-4" />
@@ -61,19 +61,19 @@ const UserSidebar = ({ userName }: UserSidebarProps) => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigate("/explore-restaurants")}>
+                <SidebarMenuButton 
+                  isActive={window.location.pathname === "/explore-restaurants"} 
+                  onClick={() => navigate("/explore-restaurants")}
+                >
                   <Search className="h-4 w-4" />
                   <span>Explore Restaurants</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigate("/favorites")}>
-                  <Heart className="h-4 w-4" />
-                  <span>Favorites</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigate("/user-settings")}>
+                <SidebarMenuButton 
+                  isActive={window.location.pathname === "/user-settings"} 
+                  onClick={() => navigate("/user-settings")}
+                >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
                 </SidebarMenuButton>

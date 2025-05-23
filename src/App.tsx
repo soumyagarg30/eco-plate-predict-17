@@ -25,6 +25,8 @@ import UserDashboard from "./pages/UserDashboard";
 import NGODashboard from "./pages/NGODashboard";
 import PackingDashboard from "./pages/PackingDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ExploreRestaurants from "./pages/ExploreRestaurants";
+import RestaurantDetail from "./pages/RestaurantDetail";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,8 @@ const App = () => (
           <Route path="/restaurant-food-preparation" element={<RestaurantFoodPreparation />} />
           <Route path="/restaurant-packaging" element={<RestaurantPackaging />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
+          <Route path="/explore-restaurants" element={<ExploreRestaurants />} />
+          <Route path="/restaurant/:id" element={<RestaurantDetail />} />
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
           <Route path="/packing-dashboard" element={<PackingDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
