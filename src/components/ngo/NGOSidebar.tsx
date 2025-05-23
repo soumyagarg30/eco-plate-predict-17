@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Home, FileText, LogOut } from "lucide-react";
+import { Home, LogOut } from "lucide-react";
 
 type NGOSidebarProps = {
   ngoName: string;
@@ -90,15 +90,6 @@ const NGOSidebar = ({ ngoName }: NGOSidebarProps) => {
             >
               <Home className="w-5 h-5" />
               {!isCollapsed && <span className="ml-3 font-medium">Dashboard</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/ngo-dashboard?tab=food-requests"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/ngo-dashboard" && location.search.includes("tab=food-requests") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <FileText className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Food Requests</span>}
             </Link>
           </li>
         </ul>

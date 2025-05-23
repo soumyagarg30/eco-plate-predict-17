@@ -1,16 +1,14 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import NGOSidebar from "@/components/ngo/NGOSidebar";
-import FoodRequestForm from "@/components/ngo/FoodRequestForm";
 import { LogOut, Clock, Check, X } from "lucide-react";
 import { DB_TABLES } from "@/utils/dbUtils";
 
@@ -29,34 +27,12 @@ interface RestaurantRequest {
 
 const NGODashboard = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [ngoData, setNgoData] = useState<any>(null);
   const [restaurantRequests, setRestaurantRequests] = useState<RestaurantRequest[]>([]);
-  const [ngoRequests, setNgoRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [activeTab, setActiveTab] = useState(() => {
-    return searchParams.get("tab") || "overview";
-  });
-
-  useEffect(() => {
-    // Update URL when tab changes
-    if (activeTab !== "overview") {
-      setSearchParams({ tab: activeTab });
-    } else {
-      setSearchParams({});
-    }
-  }, [activeTab, setSearchParams]);
-
-  useEffect(() => {
-    // Set active tab based on URL params
-    const tabParam = searchParams.get("tab");
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     // Check if user is logged in as ngo
@@ -95,8 +71,6 @@ const NGODashboard = () => {
       
       // Fetch restaurant requests for this ngo
       fetchRestaurantRequests(parsedData.id);
-      // Fetch NGO's own food requests
-      fetchNGORequests(parsedData.id);
     } catch (error) {
       console.error("Error parsing ngo data:", error);
       setAuthError("Invalid ngo data. Please login again.");
@@ -161,28 +135,6 @@ const NGODashboard = () => {
       setRequestsLoading(false);
     }
   };
-
-  const fetchNGORequests = async (ngoId: number) => {
-    try {
-      const { data, error } = await supabase
-        .from("packing_requests")
-        .select("*, Restaurants_Details(restaurant_name)")
-        .eq("requester_id", ngoId)
-        .eq("requester_type", "ngo")
-        .order("created_at", { ascending: false });
-        
-      if (error) throw error;
-      
-      setNgoRequests(data || []);
-    } catch (error) {
-      console.error("Error fetching NGO requests:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your food requests",
-        variant: "destructive",
-      });
-    }
-  };
   
   const handleUpdateRequestStatus = async (requestId: string, newStatus: string) => {
     try {
@@ -220,13 +172,6 @@ const NGODashboard = () => {
       description: "You have been logged out successfully",
     });
     navigate("/login");
-  };
-
-  const handleRequestSuccess = () => {
-    // Refresh the requests list
-    if (ngoData?.id) {
-      fetchNGORequests(ngoData.id);
-    }
   };
 
   const formatDate = (dateString: string) => {
@@ -301,184 +246,105 @@ const NGODashboard = () => {
         </header>
 
         <div className="flex-1 p-6 md:p-10">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-8">
-              <TabsTrigger value="overview">Dashboard</TabsTrigger>
-              <TabsTrigger value="food-requests">Food Requests</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <Card className="shadow-md border-none mb-6">
-                <CardHeader>
-                  <CardTitle>Restaurant Food Requests</CardTitle>
-                  <CardDescription>
-                    Manage and respond to food requests from Restaurants
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {requestsLoading ? (
-                    <div className="text-center py-10">
-                      <p className="text-gray-500">Loading requests...</p>
-                    </div>
-                  ) : restaurantRequests.length > 0 ? (
-                    <div className="border rounded-md overflow-x-auto">
-                      <Table>
-                        <TableHeader className="bg-gray-50">
-                          <TableRow>
-                            <TableHead>Restaurant</TableHead>
-                            <TableHead>Request</TableHead>
-                            <TableHead>Quantity</TableHead>
-                            <TableHead>Needed By</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {restaurantRequests.map((request) => (
-                            <TableRow key={request.id}>
-                              <TableCell className="font-medium">
-                                {request.restaurant_name}
-                              </TableCell>
-                              <TableCell>
-                                <div>
-                                  <div className="font-medium">{request.request_title}</div>
-                                  <div className="text-sm text-gray-500 truncate max-w-xs">
-                                    {request.request_description}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>{request.quantity} servings</TableCell>
-                              <TableCell>{formatDate(request.due_date)}</TableCell>
-                              <TableCell>
-                                <Badge className={getStatusBadgeClass(request.status)}>
-                                  {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  {request.status === 'pending' && (
-                                    <>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline" 
-                                        className="flex items-center gap-1 border-green-500 text-green-600 hover:bg-green-50"
-                                        onClick={() => handleUpdateRequestStatus(request.id, 'accepted')}
-                                      >
-                                        <Check className="h-3 w-3" />
-                                        Accept
-                                      </Button>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline" 
-                                        className="flex items-center gap-1 border-red-500 text-red-600 hover:bg-red-50"
-                                        onClick={() => handleUpdateRequestStatus(request.id, 'rejected')}
-                                      >
-                                        <X className="h-3 w-3" />
-                                        Decline
-                                      </Button>
-                                    </>
-                                  )}
-                                  {request.status === 'accepted' && (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      className="flex items-center gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-                                      onClick={() => handleUpdateRequestStatus(request.id, 'completed')}
-                                    >
-                                      <Check className="h-3 w-3" />
-                                      Mark as Completed
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-center p-10 border rounded-md bg-gray-50">
-                      <Clock className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                      <p className="text-gray-500 mb-2">No food requests from Restaurants yet</p>
-                      <p className="text-sm text-gray-400">
-                        When Restaurants submit food requests to your NGO, they will appear here
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="food-requests">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <FoodRequestForm 
-                    ngoId={ngoData.id} 
-                    onSuccess={handleRequestSuccess} 
-                  />
+          <Card className="shadow-md border-none mb-6">
+            <CardHeader>
+              <CardTitle>Restaurant Food Requests</CardTitle>
+              <CardDescription>
+                Manage and respond to food requests from Restaurants
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {requestsLoading ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Loading requests...</p>
                 </div>
-                <div className="lg:col-span-2">
-                  <Card className="shadow-md border-none">
-                    <CardHeader>
-                      <CardTitle>Your Food Requests</CardTitle>
-                      <CardDescription>
-                        Manage your requests to restaurants for food donations
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {ngoRequests.length > 0 ? (
-                        <div className="border rounded-md overflow-x-auto">
-                          <Table>
-                            <TableHeader className="bg-gray-50">
-                              <TableRow>
-                                <TableHead>Request</TableHead>
-                                <TableHead>Restaurant</TableHead>
-                                <TableHead>Quantity</TableHead>
-                                <TableHead>Needed By</TableHead>
-                                <TableHead>Status</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {ngoRequests.map((request) => (
-                                <TableRow key={request.id}>
-                                  <TableCell>
-                                    <div>
-                                      <div className="font-medium">{request.request_title}</div>
-                                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                                        {request.request_description}
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="font-medium">
-                                    {request.Restaurants_Details?.restaurant_name || "Unknown Restaurant"}
-                                  </TableCell>
-                                  <TableCell>{request.quantity} servings</TableCell>
-                                  <TableCell>{formatDate(request.due_date)}</TableCell>
-                                  <TableCell>
-                                    <Badge className={getStatusBadgeClass(request.status)}>
-                                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                                    </Badge>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      ) : (
-                        <div className="text-center p-10 border rounded-md bg-gray-50">
-                          <Clock className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                          <p className="text-gray-500 mb-2">No food requests created yet</p>
-                          <p className="text-sm text-gray-400">
-                            Use the form on the left to create your first food request
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+              ) : restaurantRequests.length > 0 ? (
+                <div className="border rounded-md overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead>Restaurant</TableHead>
+                        <TableHead>Request</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Needed By</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {restaurantRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell className="font-medium">
+                            {request.restaurant_name}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{request.request_title}</div>
+                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                                {request.request_description}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{request.quantity} servings</TableCell>
+                          <TableCell>{formatDate(request.due_date)}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusBadgeClass(request.status)}>
+                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {request.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="flex items-center gap-1 border-green-500 text-green-600 hover:bg-green-50"
+                                    onClick={() => handleUpdateRequestStatus(request.id, 'accepted')}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                    Accept
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="flex items-center gap-1 border-red-500 text-red-600 hover:bg-red-50"
+                                    onClick={() => handleUpdateRequestStatus(request.id, 'rejected')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                    Decline
+                                  </Button>
+                                </>
+                              )}
+                              {request.status === 'accepted' && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex items-center gap-1 border-blue-500 text-blue-600 hover:bg-blue-50"
+                                  onClick={() => handleUpdateRequestStatus(request.id, 'completed')}
+                                >
+                                  <Check className="h-3 w-3" />
+                                  Mark as Completed
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+              ) : (
+                <div className="text-center p-10 border rounded-md bg-gray-50">
+                  <Clock className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                  <p className="text-gray-500 mb-2">No food requests from Restaurants yet</p>
+                  <p className="text-sm text-gray-400">
+                    When Restaurants submit food requests to your NGO, they will appear here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
