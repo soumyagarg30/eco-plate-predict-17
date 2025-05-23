@@ -4,8 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
+import { supabase } from "@/integrations/supabase/client";
 
 const RestaurantWasteManagement = () => {
   const navigate = useNavigate();
@@ -18,6 +24,12 @@ const RestaurantWasteManagement = () => {
     { id: 2, name: "Feeding America", contact: "donations@feedingamerica.org", specialty: "Packaged foods" },
     { id: 3, name: "City Harvest", contact: "info@cityharvest.org", specialty: "Fresh produce" },
   ]);
+  const [selectedNgo, setSelectedNgo] = useState("");
+  const [foodDescription, setFoodDescription] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [dueDate, setDueDate] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in as restaurant
@@ -57,6 +69,68 @@ const RestaurantWasteManagement = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
+
+  const handleSchedulePickup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    if (!selectedNgo || !foodDescription || quantity <= 0 || !dueDate) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Get the NGO id based on the selected name
+      const selectedNgoData = ngoContacts.find(ngo => ngo.name === selectedNgo);
+      
+      if (!selectedNgoData) {
+        throw new Error("Selected NGO not found");
+      }
+      
+      // Create a new pickup request
+      const { error } = await supabase
+        .from("packing_requests")
+        .insert({
+          packing_company_id: restaurantData.id,
+          requester_id: selectedNgoData.id,
+          requester_type: "restaurant",
+          request_title: `Food Pickup Request: ${foodDescription.substring(0, 30)}`,
+          request_description: foodDescription,
+          quantity: quantity,
+          due_date: dueDate,
+          status: "pending"
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Pickup scheduled successfully",
+      });
+      
+      // Reset form
+      setSelectedNgo("");
+      setFoodDescription("");
+      setQuantity(0);
+      setDueDate("");
+      setDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error("Error scheduling pickup:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to schedule pickup",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -128,7 +202,55 @@ const RestaurantWasteManagement = () => {
                     <p className="text-gray-600">{ngo.contact}</p>
                     <div className="mt-2 flex space-x-2">
                       <Button variant="outline" size="sm">Contact</Button>
-                      <Button size="sm">Schedule Pickup</Button>
+                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" onClick={() => setSelectedNgo(ngo.name)}>Schedule Pickup</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Schedule Food Pickup with {selectedNgo}</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleSchedulePickup} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="food-description">Food Description</Label>
+                              <Textarea 
+                                id="food-description" 
+                                placeholder="Describe the food items you want to donate"
+                                value={foodDescription}
+                                onChange={(e) => setFoodDescription(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="quantity">Quantity (servings)</Label>
+                              <Input 
+                                id="quantity" 
+                                type="number" 
+                                min="1"
+                                value={quantity || ""}
+                                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="due-date">Pickup Date</Label>
+                              <Input 
+                                id="due-date" 
+                                type="date" 
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                                min={new Date().toISOString().split('T')[0]}
+                                required
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? "Scheduling..." : "Schedule Pickup"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 ))}

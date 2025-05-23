@@ -19,8 +19,8 @@ const Hero = () => {
               <Button asChild className="bg-foodie-green hover:bg-foodie-green-dark text-white px-8 py-6 text-lg">
                 <Link to="/register">Join as Restaurant</Link>
               </Button>
-              <Button asChild variant="outline" className="border-foodie-yellow text-foodie-yellow hover:bg-foodie-yellow hover:text-foodie-green-dark px-8 py-6 text-lg">
-                <Link to="/user-register">Join as User</Link>
+              <Button asChild className="bg-foodie-yellow hover:bg-foodie-yellow-dark text-foodie-green-dark px-8 py-6 text-lg">
+                <Link to="/login">Login</Link>
               </Button>
             </div>
           </div>

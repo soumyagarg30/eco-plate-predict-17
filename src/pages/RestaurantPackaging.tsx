@@ -4,8 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
+import { supabase } from "@/integrations/supabase/client";
 
 const RestaurantPackaging = () => {
   const navigate = useNavigate();
@@ -13,6 +18,13 @@ const RestaurantPackaging = () => {
   const [restaurantData, setRestaurantData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [requestTitle, setRequestTitle] = useState("");
+  const [requestDescription, setRequestDescription] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [dueDate, setDueDate] = useState("");
   
   // Sample packaging suppliers data
   const [suppliers, setSuppliers] = useState([
@@ -89,6 +101,68 @@ const RestaurantPackaging = () => {
     }
   }, [navigate, toast]);
 
+  const handleContactSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    if (!selectedSupplier || !requestTitle || !requestDescription || quantity <= 0 || !dueDate) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Get the supplier id based on the selected name
+      const selectedSupplierData = suppliers.find(supplier => supplier.name === selectedSupplier);
+      
+      if (!selectedSupplierData) {
+        throw new Error("Selected supplier not found");
+      }
+      
+      // Create a new packaging request
+      const { error } = await supabase
+        .from("packing_requests")
+        .insert({
+          packing_company_id: selectedSupplierData.id,
+          requester_id: restaurantData.id,
+          requester_type: "restaurant",
+          request_title: requestTitle,
+          request_description: requestDescription,
+          quantity: quantity,
+          due_date: dueDate,
+          status: "pending"
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Packaging request sent successfully",
+      });
+      
+      // Reset form
+      setRequestTitle("");
+      setRequestDescription("");
+      setQuantity(0);
+      setDueDate("");
+      setDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error("Error sending packaging request:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send packaging request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -149,7 +223,65 @@ const RestaurantPackaging = () => {
                     </div>
                     <div className="mt-4 flex space-x-2">
                       <Button variant="outline" size="sm">View Catalog</Button>
-                      <Button size="sm">Contact Supplier</Button>
+                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" onClick={() => setSelectedSupplier(supplier.name)}>Contact Supplier</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Request from {selectedSupplier}</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleContactSupplier} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="request-title">Request Title</Label>
+                              <Input
+                                id="request-title"
+                                placeholder="E.g., Biodegradable Containers Order"
+                                value={requestTitle}
+                                onChange={(e) => setRequestTitle(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="request-description">Request Details</Label>
+                              <Textarea
+                                id="request-description"
+                                placeholder="Describe what packaging you need"
+                                value={requestDescription}
+                                onChange={(e) => setRequestDescription(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="quantity">Quantity</Label>
+                              <Input
+                                id="quantity"
+                                type="number"
+                                min="1"
+                                value={quantity || ""}
+                                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="due-date">Needed By</Label>
+                              <Input
+                                id="due-date"
+                                type="date"
+                                value={dueDate}
+                                onChange={(e) => setDueDate(e.target.value)}
+                                min={new Date().toISOString().split('T')[0]}
+                                required
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? "Sending..." : "Send Request"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 ))}
