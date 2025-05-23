@@ -9,18 +9,37 @@ import { supabase } from "@/integrations/supabase/client";
 import WasteAnalytics from "@/components/restaurant/waste/WasteAnalytics";
 import NGOConnections from "@/components/restaurant/waste/NGOConnections";
 import { PickupFormData } from "@/components/restaurant/waste/PickupForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+
+interface NGO {
+  id: number;
+  name: string;
+  contact: string;
+  specialty: string;
+}
+
+interface PickupRequest {
+  id: string;
+  request_title: string;
+  request_description: string | null;
+  quantity: number;
+  due_date: string;
+  status: string;
+  created_at: string;
+  ngo_name?: string;
+}
 
 const RestaurantWasteManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurantData, setRestaurantData] = useState<any>(null);
+  const [ngoContacts, setNgoContacts] = useState<NGO[]>([]);
+  const [pickupRequests, setPickupRequests] = useState<PickupRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [ngoContacts, setNgoContacts] = useState([
-    { id: 1, name: "Food Bank NYC", contact: "contact@foodbanknyc.org", specialty: "All food types" },
-    { id: 2, name: "Feeding America", contact: "donations@feedingamerica.org", specialty: "Packaged foods" },
-    { id: 3, name: "City Harvest", contact: "info@cityharvest.org", specialty: "Fresh produce" },
-  ]);
 
   useEffect(() => {
     // Check if user is logged in as restaurant
@@ -49,6 +68,14 @@ const RestaurantWasteManagement = () => {
       
       setRestaurantData(parsedData);
       setAuthError("");
+      
+      // Fetch NGOs from database
+      fetchNGOs();
+      
+      // Fetch pickup requests for this restaurant
+      if (parsedData.id) {
+        fetchPickupRequests(parsedData.id);
+      }
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
       setAuthError("Invalid restaurant data. Please login again.");
@@ -60,6 +87,70 @@ const RestaurantWasteManagement = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
+  
+  const fetchNGOs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Ngo's")
+        .select('*');
+      
+      if (error) throw error;
+      
+      if (data) {
+        setNgoContacts(data);
+      }
+    } catch (error) {
+      console.error("Error fetching NGOs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load NGO contacts",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const fetchPickupRequests = async (restaurantId: number) => {
+    setRequestsLoading(true);
+    try {
+      // Fetch requests created by this restaurant
+      const { data: requestsData, error: requestsError } = await supabase
+        .from("packing_requests")
+        .select("*")
+        .eq("requester_id", restaurantId)
+        .eq("requester_type", "restaurant");
+      
+      if (requestsError) throw requestsError;
+      
+      if (requestsData) {
+        // Get NGO names for each request
+        const requestsWithNGONames = await Promise.all(
+          requestsData.map(async (request) => {
+            const { data: ngoData } = await supabase
+              .from("Ngo's")
+              .select("name")
+              .eq("id", request.packing_company_id)
+              .single();
+            
+            return {
+              ...request,
+              ngo_name: ngoData?.name || "Unknown NGO",
+            };
+          })
+        );
+        
+        setPickupRequests(requestsWithNGONames);
+      }
+    } catch (error) {
+      console.error("Error fetching pickup requests:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load pickup requests",
+        variant: "destructive",
+      });
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
 
   const handleSchedulePickup = async (ngoId: number, formData: PickupFormData) => {
     const { foodDescription, quantity, dueDate } = formData;
@@ -78,8 +169,8 @@ const RestaurantWasteManagement = () => {
       const { error } = await supabase
         .from("packing_requests")
         .insert({
-          packing_company_id: restaurantData.id,
-          requester_id: ngoId,
+          packing_company_id: ngoId,
+          requester_id: restaurantData.id,
           requester_type: "restaurant",
           request_title: `Food Pickup Request: ${foodDescription.substring(0, 30)}`,
           request_description: foodDescription,
@@ -94,6 +185,9 @@ const RestaurantWasteManagement = () => {
         title: "Success",
         description: "Pickup scheduled successfully",
       });
+      
+      // Refresh the requests list
+      fetchPickupRequests(restaurantData.id);
     } catch (error: any) {
       console.error("Error scheduling pickup:", error);
       toast({
@@ -101,8 +195,12 @@ const RestaurantWasteManagement = () => {
         description: error.message || "Failed to schedule pickup",
         variant: "destructive",
       });
-      throw error;
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   };
 
   if (isLoading) {
@@ -136,12 +234,74 @@ const RestaurantWasteManagement = () => {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <WasteAnalytics />
-          <NGOConnections 
-            ngoContacts={ngoContacts} 
-            onSchedulePickup={handleSchedulePickup} 
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <WasteAnalytics />
+            <NGOConnections 
+              ngoContacts={ngoContacts} 
+              onSchedulePickup={handleSchedulePickup} 
+            />
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Pickup Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {requestsLoading ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Loading requests...</p>
+                </div>
+              ) : pickupRequests.length > 0 ? (
+                <div className="border rounded-md overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead>NGO</TableHead>
+                        <TableHead>Food Description</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Pickup Date</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pickupRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell className="font-medium">
+                            {request.ngo_name}
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-xs truncate">
+                              {request.request_description}
+                            </div>
+                          </TableCell>
+                          <TableCell>{request.quantity} servings</TableCell>
+                          <TableCell>{formatDate(request.due_date)}</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              request.status === 'pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 
+                              request.status === 'accepted' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
+                              request.status === 'completed' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
+                              'bg-red-100 text-red-800 hover:bg-red-200'
+                            }>
+                              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center p-10 border rounded-md bg-gray-50">
+                  <p className="text-gray-500 mb-2">No pickup requests yet</p>
+                  <p className="text-sm text-gray-400">
+                    Schedule a pickup with an NGO to see it listed here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

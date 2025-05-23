@@ -9,7 +9,185 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      "Ngo's": {
+        Row: {
+          address: string | null
+          contact: string
+          created_at: string
+          email: string | null
+          id: number
+          name: string
+          phone_number: string | null
+          specialty: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact: string
+          created_at?: string
+          email?: string | null
+          id?: number
+          name: string
+          phone_number?: string | null
+          specialty?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact?: string
+          created_at?: string
+          email?: string | null
+          id?: number
+          name?: string
+          phone_number?: string | null
+          specialty?: string | null
+        }
+        Relationships: []
+      }
+      packing_requests: {
+        Row: {
+          created_at: string
+          due_date: string
+          id: string
+          packing_company_id: number
+          quantity: number
+          request_description: string | null
+          request_title: string
+          requester_id: number
+          requester_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_date: string
+          id?: string
+          packing_company_id: number
+          quantity: number
+          request_description?: string | null
+          request_title: string
+          requester_id: number
+          requester_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          id?: string
+          packing_company_id?: number
+          quantity?: number
+          request_description?: string | null
+          request_title?: string
+          requester_id?: number
+          requester_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      restaurant_ratings: {
+        Row: {
+          created_at: string
+          id: number
+          rating: number
+          restaurant_id: number
+          review: string | null
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          rating: number
+          restaurant_id: number
+          review?: string | null
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          rating?: number
+          restaurant_id?: number
+          review?: string | null
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurants_details: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: number
+          phone_number: string | null
+          restaurant_name: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: number
+          phone_number?: string | null
+          restaurant_name: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: number
+          phone_number?: string | null
+          restaurant_name?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          ac_preference: boolean | null
+          avg_quantity_ordered: number | null
+          created_at: string
+          dietary_restrictions: string[] | null
+          family_members: number | null
+          favorite_foods: string[] | null
+          id: number
+          updated_at: string
+          user_id: number
+        }
+        Insert: {
+          ac_preference?: boolean | null
+          avg_quantity_ordered?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          family_members?: number | null
+          favorite_foods?: string[] | null
+          id?: number
+          updated_at?: string
+          user_id: number
+        }
+        Update: {
+          ac_preference?: boolean | null
+          avg_quantity_ordered?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          family_members?: number | null
+          favorite_foods?: string[] | null
+          id?: number
+          updated_at?: string
+          user_id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

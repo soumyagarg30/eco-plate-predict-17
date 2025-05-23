@@ -10,7 +10,7 @@ export interface NGO {
   id: number;
   name: string;
   contact: string;
-  specialty: string;
+  specialty: string | null;
 }
 
 interface NGOConnectionsProps {
@@ -19,27 +19,29 @@ interface NGOConnectionsProps {
 }
 
 const NGOConnections: React.FC<NGOConnectionsProps> = ({ ngoContacts, onSchedulePickup }) => {
-  const [selectedNgo, setSelectedNgo] = useState("");
+  const [selectedNgo, setSelectedNgo] = useState<NGO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleNGOClick = (ngoName: string) => {
-    setSelectedNgo(ngoName);
+  const handleNGOClick = (ngo: NGO) => {
+    setSelectedNgo(ngo);
+    setDialogOpen(true);
   };
   
   const handleSubmit = async (formData: PickupFormData) => {
     setIsSubmitting(true);
     try {
-      const selectedNgoData = ngoContacts.find(ngo => ngo.name === selectedNgo);
-      if (!selectedNgoData) {
-        throw new Error("Selected NGO not found");
+      if (!selectedNgo) {
+        throw new Error("No NGO selected");
       }
       
-      await onSchedulePickup(selectedNgoData.id, formData);
+      await onSchedulePickup(selectedNgo.id, formData);
       
       // Reset form
-      setSelectedNgo("");
+      setSelectedNgo(null);
       setDialogOpen(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -52,25 +54,30 @@ const NGOConnections: React.FC<NGOConnectionsProps> = ({ ngoContacts, onSchedule
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {ngoContacts.map((ngo) => (
-            <NGOCard
-              key={ngo.id}
-              ngo={ngo}
-              onContact={() => console.log(`Contact ${ngo.name}`)}
-              onSchedulePickup={() => handleNGOClick(ngo.name)}
-              isSelected={dialogOpen && selectedNgo === ngo.name}
-              setDialogOpen={setDialogOpen}
-            />
-          ))}
-          
-          <Button className="w-full" variant="outline">Find More NGO Partners</Button>
+          {ngoContacts.length > 0 ? (
+            ngoContacts.map((ngo) => (
+              <NGOCard
+                key={ngo.id}
+                ngo={ngo}
+                onSchedulePickup={() => handleNGOClick(ngo)}
+                isSelected={dialogOpen && selectedNgo?.id === ngo.id}
+                setDialogOpen={setDialogOpen}
+              />
+            ))
+          ) : (
+            <div className="text-center p-6 bg-gray-50 rounded-md">
+              <p className="text-gray-500">No NGO partners found</p>
+            </div>
+          )}
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <PickupForm 
-              selectedNgo={selectedNgo} 
-              isSubmitting={isSubmitting}
-              onSubmit={handleSubmit}
-            />
+            {selectedNgo && (
+              <PickupForm 
+                selectedNgo={selectedNgo.name} 
+                isSubmitting={isSubmitting}
+                onSubmit={handleSubmit}
+              />
+            )}
           </Dialog>
         </div>
       </CardContent>
