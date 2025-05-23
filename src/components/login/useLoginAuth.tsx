@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -146,10 +145,10 @@ export const useLoginAuth = () => {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      setLoginError(error.message || "Invalid email or password");
+      setLoginError(error?.message || "Invalid email or password");
       toast({
         title: "Login Failed",
-        description: error.message || "Invalid email or password",
+        description: error?.message || "Invalid email or password",
         variant: "destructive",
       });
     } finally {
