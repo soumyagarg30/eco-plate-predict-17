@@ -235,7 +235,7 @@ const LoginForm = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-foodie-green hover:bg-foodie-green-dark"
+                    className="w-full bg-foodie-yellow hover:bg-foodie-yellow-dark text-black"
                     disabled={isLoading}
                   >
                     {isLoading ? "Logging in..." : "Login"}

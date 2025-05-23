@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
@@ -92,7 +90,7 @@ const RestaurantWasteManagement = () => {
         throw new Error("Selected NGO not found");
       }
       
-      // Create a new pickup request - note the table name is "packing_requests" not NGO's
+      // Create a new pickup request - FIXED: using hardcoded NGO IDs since "Ngo's" table doesn't exist
       const { error } = await supabase
         .from("packing_requests")
         .insert({
@@ -153,7 +151,7 @@ const RestaurantWasteManagement = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <RestaurantSidebar restaurantName={restaurantData.restaurant_name} />
+      <RestaurantSidebar restaurantName={restaurantData?.restaurant_name} />
       
       <div className="flex-1 p-6 md:p-10">
         <header className="mb-8">
