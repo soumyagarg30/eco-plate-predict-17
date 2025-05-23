@@ -58,60 +58,56 @@ const RegisterForm = () => {
     
     try {
       // Insert data into the appropriate table based on user type
-      let insertResult;
       let tableName;
       let insertData: any = {};
 
       switch (userType) {
         case "restaurant":
-          tableName = DB_TABLES.RESTAURANTS; // Using constant from dbUtils
+          tableName = DB_TABLES.RESTAURANTS;
           insertData = {
             restaurant_name: formData.name,
             email: formData.email,
-            password: formData.password,
+            address: formData.address,
             phone_number: formData.phone,
-            address: formData.address
+            description: null
           };
           break;
         
         case "user":
-          tableName = DB_TABLES.USER_DETAILS; // Using constant from dbUtils
+          tableName = DB_TABLES.USER_DETAILS;
           insertData = {
             name: formData.name,
             email: formData.email,
-            password: formData.password,
             phone_number: formData.phone
           };
           break;
         
         case "ngo":
-          tableName = DB_TABLES.NGOS; // Using constant from dbUtils
+          tableName = DB_TABLES.NGOS;
           insertData = {
             name: formData.name,
+            contact: formData.name, // Required field for NGO
             email: formData.email,
-            password: formData.password,
             phone_number: formData.phone,
             address: formData.address
           };
           break;
         
         case "packing":
-          tableName = DB_TABLES.PACKING_COMPANIES; // Using constant from dbUtils
+          tableName = DB_TABLES.PACKING_COMPANIES;
           insertData = {
             name: formData.name,
             email: formData.email,
-            password: formData.password,
             phone_number: formData.phone,
             address: formData.address
           };
           break;
         
         case "admin":
-          tableName = DB_TABLES.ADMIN; // Using constant from dbUtils
+          tableName = DB_TABLES.ADMIN;
           insertData = {
             username: formData.name,
             email: formData.email,
-            password: formData.password,
             phone_number: formData.phone
           };
           break;
@@ -119,12 +115,29 @@ const RegisterForm = () => {
 
       console.log(`Attempting to insert into ${tableName}:`, insertData);
 
-      insertResult = await supabase
+      const insertResult = await supabase
         .from(tableName)
         .insert(insertData);
 
       if (insertResult.error) {
         throw insertResult.error;
+      }
+
+      // Store credentials in a separate user authentication table
+      const authData = {
+        email: formData.email,
+        password: formData.password,
+        user_type: userType
+      };
+
+      console.log("Creating auth record:", authData);
+      
+      const { error: authError } = await supabase
+        .from('user_auth')
+        .insert(authData);
+      
+      if (authError) {
+        console.warn("Failed to create auth record, but user was created:", authError);
       }
 
       toast({
