@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,9 +107,10 @@ const UserDashboard = () => {
 
         if (restaurantsError) throw restaurantsError;
 
-        // Combine orders with restaurant data
-        const ordersWithRestaurants = ordersData.map(order => ({
+        // Combine orders with restaurant data and ensure items is an array
+        const ordersWithRestaurants: Order[] = ordersData.map(order => ({
           ...order,
+          items: Array.isArray(order.items) ? order.items : [],
           restaurant: restaurantsData?.find(r => r.id === order.restaurant_id)
         }));
 

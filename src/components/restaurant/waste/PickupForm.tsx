@@ -7,9 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 interface PickupFormProps {
-  selectedNgo: string;
-  isSubmitting: boolean;
-  onSubmit: (formData: PickupFormData) => Promise<void>;
+  restaurantId: number;
+  onSuccess: () => void;
 }
 
 export interface PickupFormData {
@@ -18,20 +17,35 @@ export interface PickupFormData {
   dueDate: string;
 }
 
-const PickupForm: React.FC<PickupFormProps> = ({ selectedNgo, isSubmitting, onSubmit }) => {
+const PickupForm: React.FC<PickupFormProps> = ({ restaurantId, onSuccess }) => {
   const [foodDescription, setFoodDescription] = useState('');
   const [quantity, setQuantity] = useState<number>(0);
   const [dueDate, setDueDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit({ foodDescription, quantity, dueDate });
+    setIsSubmitting(true);
+    
+    // TODO: Implement the actual submission logic to save pickup request
+    console.log('Pickup form submitted:', {
+      restaurantId,
+      foodDescription,
+      quantity,
+      dueDate
+    });
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setIsSubmitting(false);
+    onSuccess();
   };
 
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Schedule Food Pickup with {selectedNgo}</DialogTitle>
+        <DialogTitle>Schedule Food Pickup</DialogTitle>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4 pt-4">
         <div className="space-y-2">
