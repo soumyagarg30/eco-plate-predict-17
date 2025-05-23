@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, directAuth } from "@/integrations/supabase/client";
 import { UserTypes } from "./LoginTabs";
 import { DB_TABLES } from "@/utils/dbUtils";
 
@@ -58,67 +58,23 @@ export const useLoginAuth = () => {
     setIsLoading(true);
     
     try {
-      // First, authenticate with user_auth table
-      const { data: authData, error: authError } = await supabase
-        .from('user_auth')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .eq('user_type', userType)
-        .single();
+      // Authenticate directly against the appropriate table
+      const userData = await directAuth(email, password, userType);
       
-      if (authError || !authData) {
-        console.error("Auth error:", authError);
+      if (!userData) {
         throw new Error("Invalid email or password");
       }
       
-      console.log(`Auth successful for ${userType} user:`, authData);
+      console.log(`Auth successful for ${userType} user:`, userData);
       
-      // Now fetch the user details from the appropriate table based on user type
-      let tableName: string;
-      let userData;
-      
-      switch (userType) {
-        case "restaurant":
-          tableName = DB_TABLES.RESTAURANTS;
-          break;
-        case "user":
-          tableName = DB_TABLES.USER_DETAILS;
-          break;
-        case "ngo":
-          tableName = DB_TABLES.NGOS;
-          break;
-        case "packing":
-          tableName = DB_TABLES.PACKING_COMPANIES;
-          break;
-        case "admin":
-          tableName = DB_TABLES.ADMIN;
-          break;
-        default:
-          throw new Error("Invalid user type");
-      }
-      
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('email', email)
-        .single();
-        
-      if (error) {
-        console.error("Error fetching user data:", error);
-        throw new Error("Error retrieving user information");
-      }
-      
-      userData = data;
+      // Store user info in localStorage for persistence
+      localStorage.setItem("foodieSync_userType", userType);
+      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
       
       toast({
         title: "Login Successful",
         description: `Welcome back to FoodieSync as a ${userType}!`,
       });
-      
-      // Store user info in localStorage for persistence
-      localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
       
       console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
       

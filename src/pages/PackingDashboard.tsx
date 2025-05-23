@@ -70,10 +70,10 @@ const PackingDashboard = () => {
       const enrichedRequests = await Promise.all(requests.map(async (request) => {
         let requesterName = "Unknown";
         
-        // Fix the restaurant data query
+        // Fix the restaurant data query by using proper table names
         if (request.requester_type === "restaurant") {
           const { data } = await supabase
-            .from(DB_TABLES.RESTAURANTS)
+            .from(DB_TABLES.RESTAURANTS) // Use constant for correct capitalization
             .select("restaurant_name")
             .eq("id", request.requester_id)
             .single();
@@ -81,7 +81,7 @@ const PackingDashboard = () => {
           if (data) requesterName = data.restaurant_name;
         } else if (request.requester_type === "ngo") {
           const { data } = await supabase
-            .from("Ngo's")
+            .from(DB_TABLES.NGOS) // Use constant for correct capitalization
             .select("name")
             .eq("id", request.requester_id)
             .single();

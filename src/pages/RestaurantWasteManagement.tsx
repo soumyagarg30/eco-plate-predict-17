@@ -13,11 +13,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { DB_TABLES } from "@/utils/dbUtils";
 
+// Update the NGO interface to match the table structure
 interface NGO {
   id: number;
   name: string;
-  contact: string;
-  specialty: string;
+  contact: string; // Required field in the table
+  specialty?: string | null;
+  address?: string | null;
+  email?: string;
+  phone_number?: number | null;
+  created_at?: string;
 }
 
 interface PickupRequest {
@@ -97,7 +102,19 @@ const RestaurantWasteManagement = () => {
       if (error) throw error;
       
       if (data) {
-        setNgoContacts(data);
+        // Map the data to ensure it matches our NGO interface
+        const ngoData = data.map(ngo => ({
+          id: ngo.id,
+          name: ngo.name,
+          contact: ngo.contact || ngo.name, // Ensure contact field is present
+          specialty: ngo.specialty,
+          address: ngo.address,
+          email: ngo.email,
+          phone_number: ngo.phone_number,
+          created_at: ngo.created_at
+        }));
+        
+        setNgoContacts(ngoData);
       }
     } catch (error) {
       console.error("Error fetching NGOs:", error);

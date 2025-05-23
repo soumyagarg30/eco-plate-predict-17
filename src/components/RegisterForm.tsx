@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,8 +66,9 @@ const RegisterForm = () => {
           insertData = {
             restaurant_name: formData.name,
             email: formData.email,
+            password: formData.password, // Store password directly in the user table
             address: formData.address,
-            phone_number: formData.phone,
+            phone_number: formData.phone ? parseInt(formData.phone) : null,
             description: null
           };
           break;
@@ -78,6 +78,7 @@ const RegisterForm = () => {
           insertData = {
             name: formData.name,
             email: formData.email,
+            password: formData.password, // Store password directly in the user table
             phone_number: formData.phone
           };
           break;
@@ -88,7 +89,8 @@ const RegisterForm = () => {
             name: formData.name,
             contact: formData.name, // Required field for NGO
             email: formData.email,
-            phone_number: formData.phone,
+            password: formData.password, // Store password directly in the user table
+            phone_number: formData.phone ? parseInt(formData.phone) : null,
             address: formData.address
           };
           break;
@@ -98,7 +100,8 @@ const RegisterForm = () => {
           insertData = {
             name: formData.name,
             email: formData.email,
-            phone_number: formData.phone,
+            password: formData.password, // Store password directly in the user table
+            phone_number: formData.phone ? parseInt(formData.phone) : null,
             address: formData.address
           };
           break;
@@ -108,7 +111,8 @@ const RegisterForm = () => {
           insertData = {
             username: formData.name,
             email: formData.email,
-            phone_number: formData.phone
+            password: formData.password, // Store password directly in the user table
+            phone_number: formData.phone ? parseInt(formData.phone) : null
           };
           break;
       }
@@ -121,28 +125,6 @@ const RegisterForm = () => {
 
       if (insertResult.error) {
         throw insertResult.error;
-      }
-
-      // Store credentials in user_auth table using direct query
-      const authData = {
-        email: formData.email,
-        password: formData.password,
-        user_type: userType
-      };
-
-      console.log("Creating auth record:", authData);
-      
-      // Using RPC call to insert into user_auth table
-      const { error: authError } = await supabase
-        .rpc('create_user_auth', {
-          p_email: formData.email,
-          p_password: formData.password,
-          p_user_type: userType
-        });
-      
-      if (authError) {
-        console.warn("Failed to create auth record, but user was created:", authError);
-        // Continue since the main user record was created
       }
 
       toast({

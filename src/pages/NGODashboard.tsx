@@ -112,11 +112,11 @@ const NGODashboard = () => {
         // Get restaurant details for each request
         const requestsWithRestaurantNames = await Promise.all(
           requestsData.map(async (request) => {
-            // When querying the table, use the correct table name from DB_TABLES
+            // Use the correct table name with proper capitalization from DB_TABLES
             const { data: restaurantData } = await supabase
               .from(DB_TABLES.RESTAURANTS)
               .select("restaurant_name")
-              .eq("id", request.packing_company_id)
+              .eq("id", request.requester_id)
               .single();
             
             return {
