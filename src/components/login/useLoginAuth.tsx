@@ -4,8 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserTypes } from "./LoginTabs";
+import { DB_TABLES } from "@/utils/dbUtils";
 
-type TableNames = "restaurants_details" | "User_Details" | "Ngo's" | "Packing_Companies" | "Admin";
+// Define the table names based on our actual database structure
+type TableNames = 
+  "restaurants_details" | 
+  "User_Details" | 
+  "Ngo's" | 
+  "Packing_Companies" | 
+  "Admin";
 
 export const useLoginAuth = () => {
   const navigate = useNavigate();
@@ -60,17 +67,17 @@ export const useLoginAuth = () => {
     
     try {
       // Query the appropriate table based on user type
-      let tableName: TableNames;
+      let tableName: string;
       
       switch (userType) {
         case "restaurant":
-          tableName = "restaurants_details";
+          tableName = DB_TABLES.RESTAURANTS;
           break;
         case "user":
           tableName = "User_Details";
           break;
         case "ngo":
-          tableName = "Ngo's";
+          tableName = DB_TABLES.NGOS;
           break;
         case "packing":
           tableName = "Packing_Companies";
@@ -78,6 +85,8 @@ export const useLoginAuth = () => {
         case "admin":
           tableName = "Admin";
           break;
+        default:
+          throw new Error("Invalid user type");
       }
       
       console.log(`Attempting to log in as ${userType}. Querying table: ${tableName}`);
@@ -85,7 +94,7 @@ export const useLoginAuth = () => {
       
       // Find accounts with matching email (case-insensitive)
       const { data: emailData, error: emailError } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .select("*")
         .ilike("email", email);
         
