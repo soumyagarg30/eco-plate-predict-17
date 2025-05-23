@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
+import RestaurantDetails from "@/components/restaurant/RestaurantDetails";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
 import { LogOut, Clock, Check, X } from "lucide-react";
 import { DB_TABLES } from "@/utils/dbUtils";
@@ -176,6 +178,12 @@ const RestaurantDashboard = () => {
     navigate("/login");
   };
 
+  const handleRestaurantUpdate = (updatedData: any) => {
+    setRestaurantData(updatedData);
+    // Also update localStorage
+    localStorage.setItem("foodieSync_userData", JSON.stringify(updatedData));
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
@@ -238,11 +246,20 @@ const RestaurantDashboard = () => {
         </header>
 
         <div className="flex-1 p-6 md:p-10">
-          <Tabs defaultValue="menu" className="w-full">
+          <Tabs defaultValue="details" className="w-full">
             <TabsList className="mb-8">
+              <TabsTrigger value="details">Restaurant Details</TabsTrigger>
               <TabsTrigger value="menu">Menu Management</TabsTrigger>
               <TabsTrigger value="requests">NGO Requests</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="details">
+              <RestaurantDetails
+                restaurantId={restaurantData.id}
+                restaurantData={restaurantData}
+                onUpdate={handleRestaurantUpdate}
+              />
+            </TabsContent>
             
             <TabsContent value="menu">
               <Card className="shadow-md border-none">

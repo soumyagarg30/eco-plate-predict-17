@@ -13,17 +13,20 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
-  id: number;
+  id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
-  category: string;
-  is_sustainable: boolean;
+  is_vegetarian: boolean | null;
+  is_vegan: boolean | null;
+  carbon_footprint: number | null;
+  is_available: boolean | null;
 }
 
 interface RestaurantMenuProps {
@@ -37,25 +40,45 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<Partial<MenuItem>>({});
   const [isEditing, setIsEditing] = useState(false);
-  
-  // Sample menu items for demo purposes
-  const sampleMenuItems: MenuItem[] = [
-    { id: 1, name: "Organic Vegetable Salad", description: "Fresh locally sourced vegetables with house dressing", price: 12.99, category: "Starters", is_sustainable: true },
-    { id: 2, name: "Grass-Fed Beef Burger", description: "100% grass-fed beef with artisan bun and toppings", price: 18.99, category: "Main", is_sustainable: true },
-    { id: 3, name: "Pasta Carbonara", description: "Classic pasta with egg, cheese and pancetta", price: 16.99, category: "Main", is_sustainable: false },
-    { id: 4, name: "Wild-Caught Salmon", description: "Sustainably sourced salmon with seasonal vegetables", price: 24.99, category: "Main", is_sustainable: true },
-    { id: 5, name: "Chocolate Cake", description: "Rich chocolate cake with fair-trade cocoa", price: 8.99, category: "Dessert", is_sustainable: false },
-  ];
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // In a real app, we would fetch menu items from the database
-    // For now, we'll use the sample data
-    setMenuItems(sampleMenuItems);
-    setIsLoading(false);
+    fetchMenuItems();
   }, [restaurantId]);
 
+  const fetchMenuItems = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('restaurant_menu_items')
+        .select('*')
+        .eq('restaurant_id', restaurantId)
+        .order('name');
+
+      if (error) throw error;
+      setMenuItems(data || []);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load menu items",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleAddItem = () => {
-    setCurrentItem({});
+    setCurrentItem({
+      name: '',
+      description: '',
+      price: 0,
+      is_vegetarian: false,
+      is_vegan: false,
+      carbon_footprint: 0,
+      is_available: true
+    });
     setIsEditing(false);
     setIsDialogOpen(true);
   };
@@ -66,16 +89,31 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteItem = (id: number) => {
-    // In a real app, we would delete from the database
-    setMenuItems(menuItems.filter(item => item.id !== id));
-    toast({
-      title: "Item Deleted",
-      description: "Menu item has been removed",
-    });
+  const handleDeleteItem = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('restaurant_menu_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchMenuItems();
+      toast({
+        title: "Item Deleted",
+        description: "Menu item has been removed",
+      });
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete menu item",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     if (!currentItem.name || !currentItem.price) {
       toast({
         title: "Error",
@@ -85,34 +123,65 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
       return;
     }
 
-    if (isEditing) {
-      // Update existing item
-      setMenuItems(menuItems.map(item => 
-        item.id === currentItem.id ? { ...item, ...currentItem } as MenuItem : item
-      ));
+    setIsSaving(true);
+
+    try {
+      if (isEditing && currentItem.id) {
+        // Update existing item
+        const { error } = await supabase
+          .from('restaurant_menu_items')
+          .update({
+            name: currentItem.name,
+            description: currentItem.description || null,
+            price: currentItem.price,
+            is_vegetarian: currentItem.is_vegetarian || false,
+            is_vegan: currentItem.is_vegan || false,
+            carbon_footprint: currentItem.carbon_footprint || 0,
+            is_available: currentItem.is_available !== false
+          })
+          .eq('id', currentItem.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Item Updated",
+          description: "Menu item has been updated",
+        });
+      } else {
+        // Add new item
+        const { error } = await supabase
+          .from('restaurant_menu_items')
+          .insert({
+            restaurant_id: restaurantId,
+            name: currentItem.name,
+            description: currentItem.description || null,
+            price: currentItem.price,
+            is_vegetarian: currentItem.is_vegetarian || false,
+            is_vegan: currentItem.is_vegan || false,
+            carbon_footprint: currentItem.carbon_footprint || 0,
+            is_available: currentItem.is_available !== false
+          });
+
+        if (error) throw error;
+
+        toast({
+          title: "Item Added",
+          description: "New menu item has been added",
+        });
+      }
+
+      await fetchMenuItems();
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving menu item:', error);
       toast({
-        title: "Item Updated",
-        description: "Menu item has been updated",
+        title: "Error",
+        description: "Failed to save menu item",
+        variant: "destructive",
       });
-    } else {
-      // Add new item
-      const newItem: MenuItem = {
-        id: Math.max(0, ...menuItems.map(item => item.id)) + 1,
-        name: currentItem.name || "",
-        description: currentItem.description || "",
-        price: currentItem.price || 0,
-        category: currentItem.category || "Main",
-        is_sustainable: currentItem.is_sustainable || false,
-      };
-      
-      setMenuItems([...menuItems, newItem]);
-      toast({
-        title: "Item Added",
-        description: "New menu item has been added",
-      });
+    } finally {
+      setIsSaving(false);
     }
-    
-    setIsDialogOpen(false);
   };
 
   if (isLoading) {
@@ -122,20 +191,19 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-foodie-green-dark">Restaurant Menu</h2>
-        <Button onClick={handleAddItem} className="bg-foodie-green hover:bg-foodie-green-dark">
+        <h2 className="text-2xl font-bold text-gray-800">Restaurant Menu</h2>
+        <Button onClick={handleAddItem} className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4 mr-2" /> Add Menu Item
         </Button>
       </div>
       
-      <div className="bg-yellow-50 p-4 rounded-lg mb-6 border border-yellow-200">
+      <div className="bg-green-50 p-4 rounded-lg mb-6 border border-green-200">
         <div className="flex items-start">
-          <Star className="h-5 w-5 text-foodie-yellow mr-2 mt-0.5" />
+          <Star className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
           <div>
-            <h3 className="font-medium text-foodie-green-dark">Sustainability Indicator</h3>
+            <h3 className="font-medium text-gray-800">Sustainability Indicator</h3>
             <p className="text-sm text-gray-600">
-              Items marked with a star (<Star className="h-4 w-4 text-foodie-yellow inline" />) are sustainable choices 
-              with lower environmental impact based on sourcing, carbon footprint, and waste reduction metrics.
+              Items with lower carbon footprint and sustainable ingredients help create an eco-friendly menu.
             </p>
           </div>
         </div>
@@ -147,36 +215,49 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
             <TableRow>
               <TableHead className="w-[250px]">Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-center">Sustainable</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Vegetarian</TableHead>
+              <TableHead>Vegan</TableHead>
+              <TableHead>Carbon Footprint</TableHead>
+              <TableHead>Available</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {menuItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                   No menu items found. Add your first item to get started.
                 </TableCell>
               </TableRow>
             ) : (
               menuItems.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.name}
-                    {item.is_sustainable && (
-                      <Star className="h-4 w-4 text-foodie-yellow inline ml-1" />
-                    )}
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell className="text-gray-600 max-w-xs truncate">
+                    {item.description || 'No description'}
                   </TableCell>
-                  <TableCell className="text-gray-600 max-w-xs truncate">{item.description}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                  <TableCell className="text-center">
-                    {item.is_sustainable ? (
+                  <TableCell>${item.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {item.is_vegetarian ? (
                       <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full">Yes</span>
                     ) : (
                       <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-0.5 rounded-full">No</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.is_vegan ? (
+                      <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full">Yes</span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-0.5 rounded-full">No</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{item.carbon_footprint}kg CO₂</TableCell>
+                  <TableCell>
+                    {item.is_available ? (
+                      <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full">Available</span>
+                    ) : (
+                      <span className="bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-full">Unavailable</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -195,7 +276,7 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
           </DialogHeader>
@@ -211,29 +292,15 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
-              <Input
+              <Textarea
                 id="description"
                 value={currentItem.description || ''}
                 onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
                 placeholder="Describe the menu item"
+                className="min-h-20"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  value={currentItem.category || 'Main'}
-                  onChange={(e) => setCurrentItem({ ...currentItem, category: e.target.value })}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="Starters">Starters</option>
-                  <option value="Main">Main</option>
-                  <option value="Sides">Sides</option>
-                  <option value="Dessert">Dessert</option>
-                  <option value="Drinks">Drinks</option>
-                </select>
-              </div>
               <div className="grid gap-2">
                 <Label htmlFor="price">Price ($)</Label>
                 <Input
@@ -242,33 +309,66 @@ const RestaurantMenu = ({ restaurantId }: RestaurantMenuProps) => {
                   step="0.01"
                   min="0"
                   value={currentItem.price || ''}
-                  onChange={(e) => setCurrentItem({ ...currentItem, price: parseFloat(e.target.value) })}
+                  onChange={(e) => setCurrentItem({ ...currentItem, price: parseFloat(e.target.value) || 0 })}
                   placeholder="0.00"
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="carbon">Carbon Footprint (kg CO₂)</Label>
+                <Input
+                  id="carbon"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={currentItem.carbon_footprint || ''}
+                  onChange={(e) => setCurrentItem({ ...currentItem, carbon_footprint: parseFloat(e.target.value) || 0 })}
+                  placeholder="0.0"
+                />
+              </div>
             </div>
-            <div className="flex items-center space-x-2 mt-2">
-              <Checkbox
-                id="sustainable"
-                checked={currentItem.is_sustainable || false}
-                onCheckedChange={(checked) => 
-                  setCurrentItem({ ...currentItem, is_sustainable: checked as boolean })
-                }
-              />
-              <Label htmlFor="sustainable" className="text-sm font-normal">
-                This item is sustainably sourced/produced
-              </Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="vegetarian"
+                  checked={currentItem.is_vegetarian || false}
+                  onCheckedChange={(checked) => 
+                    setCurrentItem({ ...currentItem, is_vegetarian: checked as boolean })
+                  }
+                />
+                <Label htmlFor="vegetarian" className="text-sm">Vegetarian</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="vegan"
+                  checked={currentItem.is_vegan || false}
+                  onCheckedChange={(checked) => 
+                    setCurrentItem({ ...currentItem, is_vegan: checked as boolean })
+                  }
+                />
+                <Label htmlFor="vegan" className="text-sm">Vegan</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="available"
+                  checked={currentItem.is_available !== false}
+                  onCheckedChange={(checked) => 
+                    setCurrentItem({ ...currentItem, is_available: checked as boolean })
+                  }
+                />
+                <Label htmlFor="available" className="text-sm">Available</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
+              disabled={isSaving}
             >
               Cancel
             </Button>
-            <Button onClick={handleSaveItem}>
-              {isEditing ? 'Update Item' : 'Add Item'}
+            <Button onClick={handleSaveItem} disabled={isSaving}>
+              {isSaving ? 'Saving...' : (isEditing ? 'Update Item' : 'Add Item')}
             </Button>
           </DialogFooter>
         </DialogContent>
