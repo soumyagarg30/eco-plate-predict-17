@@ -17,7 +17,7 @@ import { DB_TABLES } from "@/utils/dbUtils";
 interface NGO {
   id: number;
   name: string;
-  contact: string; // Required field in the table
+  contact?: string;
   specialty?: string | null;
   address?: string | null;
   email?: string;
@@ -106,8 +106,8 @@ const RestaurantWasteManagement = () => {
         const ngoData = data.map(ngo => ({
           id: ngo.id,
           name: ngo.name,
-          contact: ngo.contact || ngo.name, // Ensure contact field is present
-          specialty: ngo.specialty,
+          contact: ngo.name, // Use name as contact since contact field doesn't exist
+          specialty: null, // Set to null since specialty field doesn't exist
           address: ngo.address,
           email: ngo.email,
           phone_number: ngo.phone_number,

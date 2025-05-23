@@ -16,9 +16,8 @@ interface Restaurant {
   id: number;
   restaurant_name: string;
   address: string | null;
-  phone_number: string | null;
+  phone_number: number | null;
   email: string | null;
-  description: string | null;
   created_at: string;
 }
 
@@ -70,10 +69,9 @@ const UserDashboard = () => {
   
   const fetchRestaurants = async () => {
     try {
-      // Use exact table name from DB_TABLES constant with correct casing
       const { data, error } = await supabase
         .from(DB_TABLES.RESTAURANTS)
-        .select("*");
+        .select("id, restaurant_name, address, phone_number, email, created_at");
       
       if (error) {
         console.error("Error fetching restaurants:", error);
@@ -81,11 +79,7 @@ const UserDashboard = () => {
       }
       
       if (data) {
-        // Ensure we're only getting restaurants with the expected shape
-        const validRestaurants = data.filter((item): item is Restaurant => 
-          'restaurant_name' in item && typeof item.restaurant_name === 'string'
-        );
-        setRestaurants(validRestaurants);
+        setRestaurants(data as Restaurant[]);
       }
     } catch (error) {
       console.error("Error fetching restaurants:", error);

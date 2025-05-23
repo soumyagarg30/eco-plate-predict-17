@@ -1,7 +1,7 @@
 
 // Database table name helpers to ensure consistent usage across the app
 export const DB_TABLES = {
-  RESTAURANTS: "restaurants_details" as const,
+  RESTAURANTS: "Restaurants_Details" as const,
   NGOS: "Ngo's" as const,
   PACKING_REQUESTS: "packing_requests" as const,
   RESTAURANT_RATINGS: "restaurant_ratings" as const,
@@ -16,9 +16,9 @@ export interface RestaurantDetails {
   id: number;
   restaurant_name: string;
   address?: string | null;
-  phone_number?: string | null;
+  phone_number?: number | null;
   email?: string | null;
-  description?: string | null;
+  password: string;
   created_at: string;
 }
 
@@ -26,11 +26,12 @@ export interface RestaurantDetails {
 export interface NGO {
   id: number;
   name: string;
-  contact: string;
+  contact?: string;
   address?: string | null;
-  phone_number?: string | null;
+  phone_number?: number | null;
   email?: string | null;
   specialty?: string | null;
+  password: string;
   created_at: string;
 }
 

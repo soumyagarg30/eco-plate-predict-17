@@ -14,7 +14,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Custom fetch wrapper for direct authentication without using user_auth table
 export const directAuth = async (email: string, password: string, userType: string) => {
   // Determine which table to check based on userType
-  let tableName: string;
+  let tableName: keyof Database['public']['Tables'];
   
   switch (userType) {
     case "restaurant":
