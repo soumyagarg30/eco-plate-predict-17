@@ -1,5 +1,5 @@
 
-import { Home, Settings, LogOut, Search } from "lucide-react";
+import { Home, LogOut, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { 
   Sidebar,
@@ -67,15 +67,6 @@ const UserSidebar = ({ userName }: UserSidebarProps) => {
                 >
                   <Search className="h-4 w-4" />
                   <span>Explore Restaurants</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={window.location.pathname === "/user-settings"} 
-                  onClick={() => navigate("/user-settings")}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

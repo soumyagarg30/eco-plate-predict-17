@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { DB_TABLES } from "@/utils/dbUtils";
 import UserSidebar from "@/components/user/UserSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingBag, Star, Calendar, TrendingUp } from "lucide-react";
+import { ShoppingBag, Star, Calendar, TrendingUp, Clock, MapPin } from "lucide-react";
 
 interface Restaurant {
   id: number;
@@ -169,8 +170,6 @@ const UserDashboard = () => {
   };
 
   const handleViewOrder = (orderId: string) => {
-    // Navigate to order details or show order details modal
-    console.log("View order:", orderId);
     toast({
       title: "Order Details",
       description: `Viewing details for order ${orderId}`,
@@ -193,7 +192,10 @@ const UserDashboard = () => {
         <div className="flex min-h-screen bg-gray-50 w-full">
           <UserSidebar userName={userData?.name} />
           <div className="flex-1 p-6 md:p-10 flex items-center justify-center">
-            <p>Loading dashboard...</p>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your dashboard...</p>
+            </div>
           </div>
         </div>
       </SidebarProvider>
@@ -206,78 +208,107 @@ const UserDashboard = () => {
         <UserSidebar userName={userData?.name} />
         
         <div className="flex-1 p-6 md:p-10">
-          <header className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <header className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
               Welcome back, {userData?.name}!
             </h1>
-            <p className="text-gray-600">
-              Here's your personalized food ordering experience
+            <p className="text-lg text-gray-600">
+              Ready to discover delicious food today?
             </p>
           </header>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleExploreRestaurants}>
-              <CardContent className="p-4 text-center">
-                <ShoppingBag className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                <h3 className="font-medium">Explore Restaurants</h3>
-                <p className="text-sm text-gray-500">Discover new places</p>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500" onClick={handleExploreRestaurants}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Explore</h3>
+                    <p className="text-sm text-gray-500">Discover restaurants</p>
+                  </div>
+                  <ShoppingBag className="h-8 w-8 text-blue-500" />
+                </div>
               </CardContent>
             </Card>
             
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                <h3 className="font-medium">Total Orders</h3>
-                <p className="text-2xl font-bold">{userStats.totalOrders}</p>
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">{userStats.totalOrders}</h3>
+                    <p className="text-sm text-gray-500">Total Orders</p>
+                  </div>
+                  <Star className="h-8 w-8 text-yellow-500" />
+                </div>
               </CardContent>
             </Card>
             
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <h3 className="font-medium">Total Spent</h3>
-                <p className="text-2xl font-bold">${userStats.totalSpent.toFixed(2)}</p>
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">${userStats.totalSpent.toFixed(2)}</h3>
+                    <p className="text-sm text-gray-500">Total Spent</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-500" />
+                </div>
               </CardContent>
             </Card>
             
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <Calendar className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-                <h3 className="font-medium">Avg Order</h3>
-                <p className="text-2xl font-bold">${userStats.avgOrderValue.toFixed(2)}</p>
+            <Card className="border-l-4 border-l-purple-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">${userStats.avgOrderValue.toFixed(2)}</h3>
+                    <p className="text-sm text-gray-500">Avg Order Value</p>
+                  </div>
+                  <Calendar className="h-8 w-8 text-purple-500" />
+                </div>
               </CardContent>
             </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Recent Orders */}
-            <Card>
+            <Card className="h-fit">
               <CardHeader>
-                <CardTitle>Recent Orders</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Recent Orders
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {recentOrders.length > 0 ? (
                   <div className="space-y-4">
                     {recentOrders.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-medium">{order.restaurant?.restaurant_name || "Unknown Restaurant"}</h4>
-                            <p className="text-sm text-gray-500">
-                              {new Date(order.order_date).toLocaleDateString()}
+                      <div key={order.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{order.restaurant?.restaurant_name || "Unknown Restaurant"}</h4>
+                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                              <MapPin className="h-3 w-3" />
+                              <span>{order.restaurant?.address || "No address"}</span>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {new Date(order.order_date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </p>
                           </div>
-                          <span className="text-lg font-bold">${Number(order.total_amount).toFixed(2)}</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-3">
-                          {order.items.length} item(s) • Status: {order.status}
+                          <div className="text-right">
+                            <span className="text-xl font-bold text-green-600">${Number(order.total_amount).toFixed(2)}</span>
+                            <p className="text-xs text-gray-500">{order.items.length} item(s)</p>
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleViewOrder(order.id)}>
+                          <Button size="sm" variant="outline" onClick={() => handleViewOrder(order.id)} className="flex-1">
                             View Details
                           </Button>
-                          <Button size="sm" onClick={() => handleReorderClick(order)}>
+                          <Button size="sm" onClick={() => handleReorderClick(order)} className="flex-1">
                             Reorder
                           </Button>
                         </div>
@@ -285,42 +316,10 @@ const UserDashboard = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">No orders yet</p>
-                    <Button onClick={handleExploreRestaurants}>
-                      Start Ordering
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recommended Restaurants */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recommended Restaurants</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recommendedRestaurants.length > 0 ? (
-                  <div className="space-y-4">
-                    {recommendedRestaurants.map((restaurant) => (
-                      <div key={restaurant.id} className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-1">{restaurant.restaurant_name}</h4>
-                        <p className="text-sm text-gray-500 mb-3">{restaurant.address || "No address provided"}</p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleVisitRestaurant(restaurant.id)}>
-                            View Menu
-                          </Button>
-                          <Button size="sm" onClick={() => navigate(`/restaurant/${restaurant.id}?tab=menu`)}>
-                            Order Now
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">No restaurants available</p>
+                  <div className="text-center py-12">
+                    <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-lg text-gray-500 mb-2">No orders yet</p>
+                    <p className="text-gray-400 mb-4">Start your food journey today!</p>
                     <Button onClick={handleExploreRestaurants}>
                       Explore Restaurants
                     </Button>
@@ -328,30 +327,79 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Recommended Restaurants */}
+            <Card className="h-fit">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Recommended for You
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recommendedRestaurants.length > 0 ? (
+                  <div className="space-y-4">
+                    {recommendedRestaurants.map((restaurant) => (
+                      <div key={restaurant.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+                        <div className="mb-3">
+                          <h4 className="font-semibold text-gray-900 mb-1">{restaurant.restaurant_name}</h4>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <MapPin className="h-3 w-3" />
+                            <span>{restaurant.address || "No address provided"}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleVisitRestaurant(restaurant.id)} className="flex-1">
+                            View Menu
+                          </Button>
+                          <Button size="sm" onClick={() => navigate(`/restaurant/${restaurant.id}?tab=menu`)} className="flex-1">
+                            Order Now
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-lg text-gray-500 mb-2">No restaurants available</p>
+                    <p className="text-gray-400 mb-4">Check back later for recommendations</p>
+                    <Button onClick={handleExploreRestaurants}>
+                      Explore All Restaurants
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* User Stats */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Your Food Journey</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-blue-600">{userStats.totalOrders}</h3>
-                  <p className="text-gray-600">Total Orders Placed</p>
+          {/* User Journey Summary */}
+          {userStats.totalOrders > 0 && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Your Food Journey</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="text-center p-6 bg-blue-50 rounded-lg">
+                    <h3 className="text-3xl font-bold text-blue-600 mb-2">{userStats.totalOrders}</h3>
+                    <p className="text-gray-700 font-medium">Orders Completed</p>
+                    <p className="text-sm text-gray-500 mt-1">You're building quite the food history!</p>
+                  </div>
+                  <div className="text-center p-6 bg-green-50 rounded-lg">
+                    <h3 className="text-3xl font-bold text-green-600 mb-2">${userStats.totalSpent.toFixed(2)}</h3>
+                    <p className="text-gray-700 font-medium">Total Investment</p>
+                    <p className="text-sm text-gray-500 mt-1">In delicious experiences</p>
+                  </div>
+                  <div className="text-center p-6 bg-purple-50 rounded-lg">
+                    <h3 className="text-xl font-bold text-purple-600 mb-2">{userStats.favoriteRestaurant}</h3>
+                    <p className="text-gray-700 font-medium">Favorite Restaurant</p>
+                    <p className="text-sm text-gray-500 mt-1">Your go-to spot for great food</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-green-600">${userStats.totalSpent.toFixed(2)}</h3>
-                  <p className="text-gray-600">Total Amount Spent</p>
-                </div>
-                <div className="text-center">
-                  <h3 className="text-lg font-bold text-purple-600">{userStats.favoriteRestaurant}</h3>
-                  <p className="text-gray-600">Favorite Restaurant</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </SidebarProvider>
