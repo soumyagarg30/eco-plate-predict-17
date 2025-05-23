@@ -83,7 +83,7 @@ const RestaurantWasteManagement = () => {
           specialty: null, // Set to null since specialty field doesn't exist
           address: ngo.address,
           email: ngo.email,
-          phone_number: ngo.phone_number,
+          phone_number: ngo.phone_number ? String(ngo.phone_number) : null // Convert to string
         }));
         setNgos(ngoData);
       }

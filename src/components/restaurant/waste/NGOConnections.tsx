@@ -11,7 +11,7 @@ export interface NGO {
   specialty: string | null;
   address?: string | null;
   email?: string | null;
-  phone_number?: number | null;
+  phone_number?: string | null; // Changed from number to string to match expected type
 }
 
 interface NGOConnectionsProps {
@@ -43,7 +43,7 @@ const NGOConnections = ({ restaurantId }: NGOConnectionsProps) => {
             specialty: null,   // This field doesn't exist in the DB
             address: ngo.address,
             email: ngo.email,
-            phone_number: ngo.phone_number
+            phone_number: ngo.phone_number ? String(ngo.phone_number) : null // Convert to string
           }));
           setNgos(formattedData);
         }

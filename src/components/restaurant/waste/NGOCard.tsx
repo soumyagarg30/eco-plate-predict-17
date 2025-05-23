@@ -1,37 +1,33 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Phone, Mail } from "lucide-react";
-
-interface NGO {
-  id: number;
-  name: string;
-  contact: string;
-  specialty: string | null;
-  email?: string | null;
-  phone_number?: string | null;
-}
+import PickupForm from './PickupForm';
+import { NGO } from './NGOConnections';
 
 interface NGOCardProps {
   ngo: NGO;
-  onSchedulePickup: () => void;
-  isSelected: boolean;
-  setDialogOpen: (isOpen: boolean) => void;
+  restaurantId: number;
 }
 
 const NGOCard: React.FC<NGOCardProps> = ({ 
   ngo, 
-  onSchedulePickup, 
-  isSelected,
-  setDialogOpen
+  restaurantId 
 }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
   const handleContactClick = () => {
     if (ngo.email) {
       window.location.href = `mailto:${ngo.email}`;
     } else {
       window.location.href = `mailto:${ngo.contact}`;
     }
+  };
+  
+  const handleSchedulePickup = () => {
+    // Logic for scheduling pickup can be added here if needed
+    console.log('Scheduling pickup with:', ngo.name);
   };
   
   return (
@@ -55,13 +51,17 @@ const NGOCard: React.FC<NGOCardProps> = ({
         <Button variant="outline" size="sm" onClick={handleContactClick}>
           Contact
         </Button>
-        <Dialog open={isSelected} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (open) onSchedulePickup();
-        }}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm">Schedule Pickup</Button>
+            <Button size="sm" onClick={handleSchedulePickup}>Schedule Pickup</Button>
           </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <PickupForm 
+              ngo={ngo} 
+              restaurantId={restaurantId} 
+              onSuccess={() => setIsDialogOpen(false)}
+            />
+          </DialogContent>
         </Dialog>
       </div>
     </div>
