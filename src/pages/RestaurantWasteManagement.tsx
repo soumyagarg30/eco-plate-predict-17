@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,6 +11,7 @@ import { PickupFormData } from "@/components/restaurant/waste/PickupForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { DB_TABLES } from "@/utils/dbUtils";
 
 interface NGO {
   id: number;
@@ -91,9 +91,9 @@ const RestaurantWasteManagement = () => {
   const fetchNGOs = async () => {
     try {
       const { data, error } = await supabase
-        .from("Ngo's")
+        .from(DB_TABLES.NGOS)
         .select('*');
-      
+    
       if (error) throw error;
       
       if (data) {

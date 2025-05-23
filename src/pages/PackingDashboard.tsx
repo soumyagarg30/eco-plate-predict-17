@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Package, CheckCircle, XCircle, Clock, RefreshCw, Building, Settings, ClipboardList, User, LogOut } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+// Import the DB_TABLES constant from dbUtils
+import { DB_TABLES } from "@/utils/dbUtils";
 
 interface PackingRequest {
   id: string;
@@ -69,9 +70,10 @@ const PackingDashboard = () => {
       const enrichedRequests = await Promise.all(requests.map(async (request) => {
         let requesterName = "Unknown";
         
+        // Fix the restaurant data query
         if (request.requester_type === "restaurant") {
           const { data } = await supabase
-            .from("Restaurants_Details")
+            .from(DB_TABLES.RESTAURANTS)
             .select("restaurant_name")
             .eq("id", request.requester_id)
             .single();

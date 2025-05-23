@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserTypes } from "./LoginTabs";
 
-type TableNames = "Restaurants_Details" | "User_Details" | "Ngo's" | "Packing_Companies" | "Admin";
+type TableNames = "restaurants_details" | "User_Details" | "Ngo's" | "Packing_Companies" | "Admin";
 
 export const useLoginAuth = () => {
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ export const useLoginAuth = () => {
       
       switch (userType) {
         case "restaurant":
-          tableName = "Restaurants_Details";
+          tableName = "restaurants_details";
           break;
         case "user":
           tableName = "User_Details";

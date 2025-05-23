@@ -12,6 +12,7 @@ import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
 import FoodPrepModel from "@/components/restaurant/FoodPrepModel";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
 import { LogOut, Clock, Check, X } from "lucide-react";
+import { DB_TABLES } from "@/utils/dbUtils";
 
 interface NGORequest {
   id: string;
@@ -112,7 +113,7 @@ const RestaurantDashboard = () => {
         const requestsWithNGONames = await Promise.all(
           requestsData.map(async (request) => {
             const { data: ngoData } = await supabase
-              .from("Ngo's")
+              .from(DB_TABLES.NGOS)
               .select("name")
               .eq("id", request.requester_id)
               .single();
