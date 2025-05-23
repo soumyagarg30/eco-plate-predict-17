@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +34,7 @@ const RestaurantDetail = () => {
   const restaurantId = parseInt(id || "0");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [restaurant, setRestaurant] = useState<RestaurantDetails | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
@@ -41,7 +42,7 @@ const RestaurantDetail = () => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [userRating, setUserRating] = useState<any>(null);
-  const [tab, setTab] = useState("menu");
+  const [tab, setTab] = useState(searchParams.get("tab") || "menu");
 
   useEffect(() => {
     // Check if user is logged in

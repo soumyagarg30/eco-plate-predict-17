@@ -26,7 +26,6 @@ const NGOCard: React.FC<NGOCardProps> = ({
   };
   
   const handleSchedulePickup = () => {
-    // Logic for scheduling pickup can be added here if needed
     console.log('Scheduling pickup with:', ngo.name);
   };
   
@@ -57,7 +56,6 @@ const NGOCard: React.FC<NGOCardProps> = ({
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <PickupForm 
-              ngo={ngo} 
               restaurantId={restaurantId} 
               onSuccess={() => setIsDialogOpen(false)}
             />

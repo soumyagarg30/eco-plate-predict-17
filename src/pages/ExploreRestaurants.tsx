@@ -11,10 +11,23 @@ import UserSidebar from "@/components/user/UserSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_vegetarian: boolean | null;
+  is_vegan: boolean | null;
+}
+
+interface RestaurantWithMenu extends RestaurantDetails {
+  menuItems: MenuItem[];
+}
+
 const ExploreRestaurants = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [restaurants, setRestaurants] = useState<RestaurantDetails[]>([]);
+  const [restaurants, setRestaurants] = useState<RestaurantWithMenu[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
@@ -44,7 +57,7 @@ const ExploreRestaurants = () => {
       setUserData(parsedData);
       setAuthError("");
       
-      fetchRestaurants();
+      fetchRestaurantsWithMenu();
     } catch (error) {
       console.error("Error parsing user data:", error);
       setAuthError("Invalid user data. Please login again.");
@@ -57,20 +70,39 @@ const ExploreRestaurants = () => {
     }
   }, [navigate, toast]);
 
-  const fetchRestaurants = async () => {
+  const fetchRestaurantsWithMenu = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data: restaurantsData, error: restaurantsError } = await supabase
         .from(DB_TABLES.RESTAURANTS)
         .select("id, restaurant_name, address, phone_number, email, created_at");
       
-      if (error) {
-        console.error("Error fetching restaurants:", error);
-        throw error;
+      if (restaurantsError) {
+        console.error("Error fetching restaurants:", restaurantsError);
+        throw restaurantsError;
       }
       
-      if (data) {
-        setRestaurants(data as RestaurantDetails[]);
+      if (restaurantsData) {
+        // Fetch menu items for each restaurant
+        const restaurantsWithMenu = await Promise.all(
+          restaurantsData.map(async (restaurant) => {
+            const { data: menuData, error: menuError } = await supabase
+              .from("restaurant_menu_items")
+              .select("id, name, description, price, is_vegetarian, is_vegan")
+              .eq("restaurant_id", restaurant.id)
+              .eq("is_available", true)
+              .limit(3); // Show only first 3 items as preview
+            
+            if (menuError) {
+              console.error("Error fetching menu for restaurant:", restaurant.id, menuError);
+              return { ...restaurant, menuItems: [] };
+            }
+            
+            return { ...restaurant, menuItems: menuData || [] };
+          })
+        );
+        
+        setRestaurants(restaurantsWithMenu as RestaurantWithMenu[]);
       }
     } catch (error) {
       console.error("Error fetching restaurants:", error);
@@ -121,7 +153,7 @@ const ExploreRestaurants = () => {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="h-48 animate-pulse">
+                <Card key={i} className="h-96 animate-pulse">
                   <CardContent className="p-0">
                     <div className="h-full bg-gray-200"></div>
                   </CardContent>
@@ -144,12 +176,51 @@ const ExploreRestaurants = () => {
                             {restaurant.phone_number ? `Phone: ${restaurant.phone_number}` : ""}
                           </p>
                         </div>
-                        <Button 
-                          onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                          className="w-full"
-                        >
-                          View Details
-                        </Button>
+                        
+                        {/* Menu Items Preview */}
+                        <div className="mb-4">
+                          <h4 className="font-medium text-sm mb-2">Sample Menu Items:</h4>
+                          {restaurant.menuItems.length > 0 ? (
+                            <div className="space-y-2">
+                              {restaurant.menuItems.map((item) => (
+                                <div key={item.id} className="flex justify-between items-start text-xs">
+                                  <div className="flex-1">
+                                    <span className="font-medium">{item.name}</span>
+                                    {item.description && (
+                                      <p className="text-gray-500 text-xs truncate">{item.description}</p>
+                                    )}
+                                    <div className="flex gap-1 mt-1">
+                                      {item.is_vegetarian && <span className="bg-green-100 text-green-800 px-1 py-0.5 rounded text-xs">Veg</span>}
+                                      {item.is_vegan && <span className="bg-green-100 text-green-800 px-1 py-0.5 rounded text-xs">Vegan</span>}
+                                    </div>
+                                  </div>
+                                  <span className="font-medium text-sm">${item.price.toFixed(2)}</span>
+                                </div>
+                              ))}
+                              {restaurant.menuItems.length === 3 && (
+                                <p className="text-xs text-gray-400 italic">+ more items available</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400">No menu items available</p>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                            className="flex-1"
+                          >
+                            View Details
+                          </Button>
+                          <Button 
+                            onClick={() => navigate(`/restaurant/${restaurant.id}?tab=menu`)}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Order Now
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
