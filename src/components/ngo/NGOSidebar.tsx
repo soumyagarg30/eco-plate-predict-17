@@ -4,13 +4,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Menu as MenuIcon, LogOut } from "lucide-react";
+import { Home, FileText, LogOut } from "lucide-react";
 
-type RestaurantSidebarProps = {
-  restaurantName: string;
+type NGOSidebarProps = {
+  ngoName: string;
 };
 
-const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
+const NGOSidebar = ({ ngoName }: NGOSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -50,17 +50,17 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
         {!isCollapsed && (
           <div className="flex items-center gap-2">
             <Avatar className="h-10 w-10 bg-gray-200 text-gray-800">
-              <AvatarFallback>{getInitials(restaurantName)}</AvatarFallback>
+              <AvatarFallback>{getInitials(ngoName)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-semibold text-sm truncate max-w-[180px] text-gray-900">{restaurantName}</span>
-              <span className="text-xs text-gray-500">Restaurant</span>
+              <span className="font-semibold text-sm truncate max-w-[180px] text-gray-900">{ngoName}</span>
+              <span className="text-xs text-gray-500">NGO</span>
             </div>
           </div>
         )}
         {isCollapsed && (
           <Avatar className="h-10 w-10 mx-auto bg-gray-200 text-gray-800">
-            <AvatarFallback>{getInitials(restaurantName)}</AvatarFallback>
+            <AvatarFallback>{getInitials(ngoName)}</AvatarFallback>
           </Avatar>
         )}
         <button 
@@ -85,8 +85,8 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
         <ul className="space-y-1 px-3">
           <li>
             <Link
-              to="/restaurant-dashboard"
-              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-dashboard') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+              to="/ngo-dashboard"
+              className={`flex items-center p-3 rounded-lg ${isActive('/ngo-dashboard') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
             >
               <Home className="w-5 h-5" />
               {!isCollapsed && <span className="ml-3 font-medium">Dashboard</span>}
@@ -94,22 +94,11 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
           </li>
           <li>
             <Link
-              to="/restaurant-dashboard?tab=menu"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/restaurant-dashboard" && location.search.includes("tab=menu") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+              to="/ngo-dashboard?tab=food-requests"
+              className={`flex items-center p-3 rounded-lg ${location.pathname === "/ngo-dashboard" && location.search.includes("tab=food-requests") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
             >
-              <MenuIcon className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Menu Management</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/restaurant-dashboard?tab=requests"
-              className={`flex items-center p-3 rounded-lg ${location.pathname === "/restaurant-dashboard" && location.search.includes("tab=requests") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-              </svg>
-              {!isCollapsed && <span className="ml-3 font-medium">NGO Requests</span>}
+              <FileText className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Food Requests</span>}
             </Link>
           </li>
         </ul>
@@ -129,4 +118,4 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
   );
 };
 
-export default RestaurantSidebar;
+export default NGOSidebar;
