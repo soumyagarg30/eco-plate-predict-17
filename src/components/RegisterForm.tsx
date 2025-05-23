@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { DB_TABLES } from "@/utils/dbUtils";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -63,55 +64,55 @@ const RegisterForm = () => {
 
       switch (userType) {
         case "restaurant":
-          tableName = "Restaurants_Details";
+          tableName = DB_TABLES.RESTAURANTS; // Using constant from dbUtils
           insertData = {
             restaurant_name: formData.name,
-            email: formData.email,  // Using lowercase email to match database column
+            email: formData.email,
             password: formData.password,
-            phone_number: formData.phone ? parseInt(formData.phone) : 0, // Default to 0 as it's required
+            phone_number: formData.phone,
             address: formData.address
           };
           break;
         
         case "user":
-          tableName = "User_Details";
+          tableName = DB_TABLES.USER_DETAILS; // Using constant from dbUtils
           insertData = {
             name: formData.name,
-            email: formData.email,  // Using lowercase email
+            email: formData.email,
             password: formData.password,
             phone_number: formData.phone
           };
           break;
         
         case "ngo":
-          tableName = "Ngo's";
+          tableName = DB_TABLES.NGOS; // Using constant from dbUtils
           insertData = {
             name: formData.name,
-            email: formData.email,  // Using lowercase email
+            email: formData.email,
             password: formData.password,
-            phone_number: formData.phone ? parseInt(formData.phone) : null,
+            phone_number: formData.phone,
             address: formData.address
           };
           break;
         
         case "packing":
-          tableName = "Packing_Companies";
+          tableName = DB_TABLES.PACKING_COMPANIES; // Using constant from dbUtils
           insertData = {
             name: formData.name,
-            email: formData.email,  // Using lowercase email
+            email: formData.email,
             password: formData.password,
-            phone_number: formData.phone ? parseInt(formData.phone) : null,
+            phone_number: formData.phone,
             address: formData.address
           };
           break;
         
         case "admin":
-          tableName = "Admin";
+          tableName = DB_TABLES.ADMIN; // Using constant from dbUtils
           insertData = {
             username: formData.name,
-            email: formData.email,  // Using lowercase email
+            email: formData.email,
             password: formData.password,
-            phone_number: formData.phone ? parseInt(formData.phone) : null
+            phone_number: formData.phone
           };
           break;
       }
