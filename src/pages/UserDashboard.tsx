@@ -70,15 +70,22 @@ const UserDashboard = () => {
   
   const fetchRestaurants = async () => {
     try {
-      // Update the query to use the correct table name from DB_TABLES constant
+      // Use exact table name from DB_TABLES constant with correct casing
       const { data, error } = await supabase
-        .from(DB_TABLES.RESTAURANTS) // Use the constant for correct capitalization
+        .from(DB_TABLES.RESTAURANTS)
         .select("*");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching restaurants:", error);
+        throw error;
+      }
       
       if (data) {
-        setRestaurants(data as Restaurant[]); // Cast to correct type
+        // Ensure we're only getting restaurants with the expected shape
+        const validRestaurants = data.filter((item): item is Restaurant => 
+          'restaurant_name' in item && typeof item.restaurant_name === 'string'
+        );
+        setRestaurants(validRestaurants);
       }
     } catch (error) {
       console.error("Error fetching restaurants:", error);
