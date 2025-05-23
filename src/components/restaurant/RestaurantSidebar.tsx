@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Menu as MenuIcon, Trash2, Package, ChefHat, LogOut } from "lucide-react";
+import { Home, Menu as MenuIcon, LogOut } from "lucide-react";
 
 type RestaurantSidebarProps = {
   restaurantName: string;
@@ -98,34 +98,7 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
               className={`flex items-center p-3 rounded-lg ${location.pathname === "/restaurant-dashboard" && location.search.includes("tab=menu") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
             >
               <MenuIcon className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Menu</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/restaurant-waste-management"
-              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-waste-management') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <Trash2 className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Food Waste Management</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/restaurant-food-preparation"
-              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-food-preparation') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <ChefHat className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Food Preparation</span>}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/restaurant-packaging"
-              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-packaging') ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <Package className="w-5 h-5" />
-              {!isCollapsed && <span className="ml-3 font-medium">Sustainable Packaging</span>}
+              {!isCollapsed && <span className="ml-3 font-medium">Menu Management</span>}
             </Link>
           </li>
         </ul>

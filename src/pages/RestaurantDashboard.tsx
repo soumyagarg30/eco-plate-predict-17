@@ -53,7 +53,6 @@ const RestaurantDashboard = () => {
         variant: "destructive",
       });
       
-      // Short delay before redirect to ensure toast is shown
       setTimeout(() => {
         navigate("/login");
       }, 1500);
@@ -61,11 +60,9 @@ const RestaurantDashboard = () => {
     }
 
     try {
-      // Set restaurant data
       const parsedData = JSON.parse(userData);
       console.log("Restaurant data loaded:", parsedData);
       
-      // Check if the data has expected restaurant properties - use lowercase restaurant_name
       if (!parsedData || !parsedData.restaurant_name) {
         throw new Error("Invalid restaurant data format");
       }
@@ -73,7 +70,6 @@ const RestaurantDashboard = () => {
       setRestaurantData(parsedData);
       setAuthError("");
       
-      // Fetch NGO requests for this restaurant
       fetchNGORequests(parsedData.id);
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
@@ -84,11 +80,9 @@ const RestaurantDashboard = () => {
         variant: "destructive",
       });
       
-      // Clear invalid data
       localStorage.removeItem("foodieSync_userType");
       localStorage.removeItem("foodieSync_userData");
       
-      // Short delay before redirect to ensure toast is shown
       setTimeout(() => {
         navigate("/login");
       }, 1500);
@@ -100,7 +94,6 @@ const RestaurantDashboard = () => {
   const fetchNGORequests = async (restaurantId: number) => {
     setRequestsLoading(true);
     try {
-      // Fetch requests directed to this restaurant
       const { data: requestsData, error: requestsError } = await supabase
         .from("packing_requests")
         .select("*")
@@ -110,7 +103,6 @@ const RestaurantDashboard = () => {
       if (requestsError) throw requestsError;
       
       if (requestsData) {
-        // Get NGO details for each request
         const requestsWithNGONames = await Promise.all(
           requestsData.map(async (request) => {
             const { data: ngoData } = await supabase
@@ -154,7 +146,6 @@ const RestaurantDashboard = () => {
         description: `Request ${newStatus} successfully`,
       });
       
-      // Refresh the requests list
       if (restaurantData?.id) {
         fetchNGORequests(restaurantData.id);
       }
@@ -180,7 +171,6 @@ const RestaurantDashboard = () => {
 
   const handleRestaurantUpdate = (updatedData: any) => {
     setRestaurantData(updatedData);
-    // Also update localStorage
     localStorage.setItem("foodieSync_userData", JSON.stringify(updatedData));
   };
 
