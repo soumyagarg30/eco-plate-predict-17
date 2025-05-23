@@ -52,13 +52,18 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
     setIsSubmitting(true);
 
     try {
+      console.log("Submitting food request with NGO ID:", ngoId);
+      
       // Get list of restaurants to select a recipient randomly (for demonstration)
       const { data: restaurants, error: restaurantsError } = await supabase
         .from("Restaurants_Details")
         .select("id")
         .limit(10);
 
-      if (restaurantsError) throw restaurantsError;
+      if (restaurantsError) {
+        console.error("Error fetching restaurants:", restaurantsError);
+        throw restaurantsError;
+      }
 
       if (!restaurants || restaurants.length === 0) {
         toast({
@@ -71,14 +76,14 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
 
       // Select a random restaurant
       const randomRestaurant = restaurants[Math.floor(Math.random() * restaurants.length)];
+      console.log("Selected restaurant:", randomRestaurant);
 
-      // Create food request
+      // Create food request in the ngo_food_requests table
       const { error } = await supabase
-        .from("packing_requests")
+        .from("ngo_food_requests")
         .insert({
-          requester_id: ngoId,
-          requester_type: "ngo",
-          packing_company_id: randomRestaurant.id,
+          ngo_id: ngoId,
+          restaurant_id: randomRestaurant.id,
           request_title: data.requestTitle,
           request_description: data.requestDescription,
           quantity: data.quantity,
@@ -86,7 +91,12 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
           status: "pending",
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating food request:", error);
+        throw error;
+      }
+
+      console.log("Food request created successfully");
 
       toast({
         title: "Success",
