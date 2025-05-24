@@ -62,7 +62,9 @@ export const useLoginAuth = () => {
       
       // Check verification status for non-admin users
       if (userType !== "admin") {
-        if (!userData.hasOwnProperty('verified') || !userData.verified) {
+        // Safely check if verified property exists and is true
+        const isVerified = userData && typeof userData === 'object' && 'verified' in userData && userData.verified === true;
+        if (!isVerified) {
           throw new Error("Your account is not verified yet. Please wait for admin approval.");
         }
       }
