@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -367,30 +366,30 @@ export class PackagingOptimizationPredictor {
 
   extractFeatures(data: PackagingOptimizationData): number[] {
     const packagingTypeMap: Record<string, number> = {
-      containers: 0,
-      boxes: 1,
-      bags: 2,
-      wrapping: 3
+      "containers": 0,
+      "boxes": 1,
+      "bags": 2,
+      "wrapping": 3
     };
     
     const materialMap: Record<string, number> = {
-      plastic: 0,
-      compostable: 1,
-      recycled: 2,
+      "plastic": 0,
+      "compostable": 1,
+      "recycled": 2,
       "plant-based": 3
     };
     
     const regionMap: Record<string, number> = {
-      local: 0,
-      regional: 1,
-      national: 2,
-      international: 3
+      "local": 0,
+      "regional": 1,
+      "national": 2,
+      "international": 3
     };
     
     const sustainabilityMap: Record<string, number> = {
-      basic: 0,
+      "basic": 0,
       "eco-friendly": 1,
-      organic: 2,
+      "organic": 2,
       "carbon-neutral": 3
     };
 
@@ -628,8 +627,8 @@ export const PackagingOptimizationForm: React.FC<PackagingOptimizationFormProps>
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="local">Local (< 50km)</SelectItem>
-                    <SelectItem value="regional">Regional (< 200km)</SelectItem>
+                    <SelectItem value="local">Local (&lt; 50km)</SelectItem>
+                    <SelectItem value="regional">Regional (&lt; 200km)</SelectItem>
                     <SelectItem value="national">National</SelectItem>
                     <SelectItem value="international">International</SelectItem>
                   </SelectContent>
