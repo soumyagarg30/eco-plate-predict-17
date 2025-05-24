@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -376,7 +377,7 @@ export class PackagingOptimizationPredictor {
       plastic: 0,
       compostable: 1,
       recycled: 2,
-      'plant-based': 3
+      "plant-based": 3
     };
     
     const regionMap: Record<string, number> = {
@@ -388,9 +389,9 @@ export class PackagingOptimizationPredictor {
     
     const sustainabilityMap: Record<string, number> = {
       basic: 0,
-      'eco-friendly': 1,
+      "eco-friendly": 1,
       organic: 2,
-      'carbon-neutral': 3
+      "carbon-neutral": 3
     };
 
     return [
