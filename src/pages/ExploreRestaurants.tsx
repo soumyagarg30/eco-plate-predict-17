@@ -33,6 +33,15 @@ const ExploreRestaurants = () => {
   const [userData, setUserData] = useState<any>(null);
   const [expandedRestaurants, setExpandedRestaurants] = useState<Set<number>>(new Set());
 
+  // Array of restaurant images
+  const restaurantImages = [
+    "/lovable-uploads/7cbe4698-8cda-486b-80f3-e05c6ad64cc2.png",
+    "/lovable-uploads/9720724c-9c35-48d2-838f-2d22051f6e2e.png",
+    "/lovable-uploads/29f6d6a5-40d1-4913-a705-8029e9184dda.png",
+    "/lovable-uploads/a00e3707-97e8-40f5-9535-9155d932ea1a.png",
+    "/lovable-uploads/67b48250-3022-49aa-add3-66c75911ba23.png"
+  ];
+
   useEffect(() => {
     // Check if user is logged in as a regular user
     const userType = localStorage.getItem("foodieSync_userType");
@@ -163,7 +172,7 @@ const ExploreRestaurants = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Card key={i} className="animate-pulse">
-                    <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                    <div className="h-56 bg-gray-200 rounded-t-lg"></div>
                     <CardContent className="p-6">
                       <div className="h-6 bg-gray-200 rounded mb-3"></div>
                       <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -176,35 +185,40 @@ const ExploreRestaurants = () => {
               <>
                 {filteredRestaurants.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredRestaurants.map((restaurant) => (
-                      <Card key={restaurant.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md">
-                        {/* Restaurant Image Placeholder */}
-                        <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 relative">
-                          <div className="absolute inset-0 bg-black/10"></div>
+                    {filteredRestaurants.map((restaurant, index) => (
+                      <Card key={restaurant.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+                        {/* Restaurant Image */}
+                        <div className="h-56 relative overflow-hidden">
+                          <img 
+                            src={restaurantImages[index % restaurantImages.length]} 
+                            alt={restaurant.restaurant_name}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                           <div className="absolute top-4 right-4">
-                            <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1 shadow-md">
                               <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                              <span className="text-sm font-medium">4.5</span>
+                              <span className="text-sm font-semibold text-gray-800">4.5</span>
                             </div>
                           </div>
                         </div>
                         
-                        <CardContent className="p-6">
+                        <CardContent className="p-5">
                           <div className="mb-4">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
                               {restaurant.restaurant_name}
                             </h3>
                             
-                            <div className="space-y-2 text-sm text-gray-600">
+                            <div className="space-y-1.5 text-sm text-gray-600">
                               {restaurant.address && (
                                 <div className="flex items-center gap-2">
-                                  <MapPin className="h-4 w-4 text-gray-400" />
-                                  <span>{restaurant.address}</span>
+                                  <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  <span className="line-clamp-1">{restaurant.address}</span>
                                 </div>
                               )}
                               {restaurant.phone_number && (
                                 <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4 text-gray-400" />
+                                  <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                   <span>{restaurant.phone_number}</span>
                                 </div>
                               )}
@@ -212,15 +226,15 @@ const ExploreRestaurants = () => {
                           </div>
 
                           {/* Menu Items Preview */}
-                          <div className="mb-6">
+                          <div className="mb-5">
                             <div className="flex justify-between items-center mb-3">
-                              <h4 className="font-semibold text-gray-900">Menu Highlights</h4>
+                              <h4 className="font-semibold text-gray-900 text-sm">Menu Highlights</h4>
                               {restaurant.menuItems.length > 2 && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleRestaurantExpansion(restaurant.id)}
-                                  className="text-sm"
+                                  className="text-xs h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
                                 >
                                   {expandedRestaurants.has(restaurant.id) ? "Show Less" : `+${restaurant.menuItems.length - 2} more`}
                                 </Button>
@@ -228,58 +242,60 @@ const ExploreRestaurants = () => {
                             </div>
                             
                             {restaurant.menuItems.length > 0 ? (
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 {restaurant.menuItems
                                   .slice(0, expandedRestaurants.has(restaurant.id) ? undefined : 2)
                                   .map((item) => (
                                   <div key={item.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <span className="font-medium text-gray-900">{item.name}</span>
+                                    <div className="flex justify-between items-start gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="font-medium text-gray-900 text-sm line-clamp-1">{item.name}</span>
                                           <div className="flex gap-1">
                                             {item.is_vegetarian && (
-                                              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-700">
+                                              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 h-5">
                                                 Veg
                                               </Badge>
                                             )}
                                             {item.is_vegan && (
-                                              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-700">
+                                              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 h-5">
                                                 Vegan
                                               </Badge>
                                             )}
                                           </div>
                                         </div>
                                         {item.description && (
-                                          <p className="text-gray-500 text-xs line-clamp-2">{item.description}</p>
+                                          <p className="text-gray-500 text-xs line-clamp-1">{item.description}</p>
                                         )}
                                       </div>
-                                      <span className="font-bold text-green-600 ml-3">${item.price.toFixed(2)}</span>
+                                      <span className="font-bold text-green-600 text-sm flex-shrink-0">${item.price.toFixed(2)}</span>
                                     </div>
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-400 italic text-center py-4">
+                              <p className="text-xs text-gray-400 italic text-center py-3 bg-gray-50/50 rounded-lg border border-gray-100">
                                 Menu coming soon...
                               </p>
                             )}
                           </div>
                           
-                          <div className="flex gap-3">
+                          <div className="flex gap-2">
                             <Button 
                               onClick={() => navigate(`/restaurant/${restaurant.id}`)}
                               variant="outline"
-                              className="flex-1 border-gray-200 hover:bg-gray-50"
+                              size="sm"
+                              className="flex-1 border-gray-200 hover:bg-gray-50 text-sm h-9"
                             >
                               View Details
                             </Button>
                             <Button 
                               onClick={() => navigate(`/place-order/${restaurant.id}`)}
-                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              size="sm"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-sm h-9"
                               disabled={restaurant.menuItems.length === 0}
                             >
-                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
                               Order Now
                             </Button>
                           </div>
