@@ -48,6 +48,8 @@ export const useLoginAuth = () => {
       .single();
     
     if (error) throw error;
+    if (!data) throw new Error("Invalid credentials");
+    
     return data;
   };
 
@@ -60,7 +62,7 @@ export const useLoginAuth = () => {
       
       // Check verification status for non-admin users
       if (userType !== "admin") {
-        if (!userData || typeof userData.verified === 'undefined' || !userData.verified) {
+        if (!userData.hasOwnProperty('verified') || !userData.verified) {
           throw new Error("Your account is not verified yet. Please wait for admin approval.");
         }
       }
