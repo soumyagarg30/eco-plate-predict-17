@@ -212,12 +212,6 @@ const PackingDashboard = () => {
             <div className="flex-1">
               <TabsContent value="profile" className="m-0">
                 <Card className="border-none shadow-md">
-                  <CardHeader className="bg-blue-50 border-b pb-8 pt-8">
-                    <CardTitle className="text-2xl font-bold text-blue-800">FoodieSync</CardTitle>
-                    <CardDescription className="text-blue-600">
-                      Manage your profile details
-                    </CardDescription>
-                  </CardHeader>
                   <CardContent className="pt-8">
                     {userData && (
                       <div className="space-y-8">
