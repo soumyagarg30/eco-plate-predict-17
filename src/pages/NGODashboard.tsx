@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import NGOSidebar from "@/components/ngo/NGOSidebar";
 import FoodRequestForm from "@/components/ngo/FoodRequestForm";
+import NGORequestHistory from "@/components/ngo/NGORequestHistory";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -142,7 +142,8 @@ const NGODashboard = () => {
           <Tabs defaultValue="dashboard" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="food-requests">Food Requests</TabsTrigger>
+              <TabsTrigger value="food-requests">Submit Request</TabsTrigger>
+              <TabsTrigger value="request-history">Request History</TabsTrigger>
             </TabsList>
             
             <TabsContent value="dashboard">
@@ -157,7 +158,7 @@ const NGODashboard = () => {
                   <div className="text-center p-10">
                     <p className="text-gray-500 mb-2">Your NGO dashboard overview</p>
                     <p className="text-sm text-gray-400">
-                      Use the tabs above to navigate to different sections
+                      Use the tabs above to submit food requests to restaurants and track their status
                     </p>
                   </div>
                 </CardContent>
@@ -169,13 +170,17 @@ const NGODashboard = () => {
                 <CardHeader>
                   <CardTitle>Submit Food Request</CardTitle>
                   <CardDescription>
-                    Request food from restaurants for your organization
+                    Select a restaurant and request food for your organization
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <FoodRequestForm ngoId={ngoData.id} />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="request-history">
+              <NGORequestHistory ngoId={ngoData.id} />
             </TabsContent>
           </Tabs>
         </div>

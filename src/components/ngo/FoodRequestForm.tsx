@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -20,6 +21,7 @@ const formSchema = z.object({
   requestTitle: z.string().min(5, "Title must be at least 5 characters"),
   requestDescription: z.string().min(10, "Description must be at least 10 characters"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  restaurantId: z.string().min(1, "Please select a restaurant"),
   dueDate: z.date({
     required_error: "Due date is required",
   }).refine(date => date > new Date(), {
@@ -29,6 +31,12 @@ const formSchema = z.object({
 
 type FoodRequestFormValues = z.infer<typeof formSchema>;
 
+interface Restaurant {
+  id: number;
+  restaurant_name: string;
+  address: string;
+}
+
 interface FoodRequestFormProps {
   ngoId: number;
   onSuccess?: () => void;
@@ -37,6 +45,8 @@ interface FoodRequestFormProps {
 const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
 
   const form = useForm<FoodRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -44,46 +54,54 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
       requestTitle: "",
       requestDescription: "",
       quantity: 10,
+      restaurantId: "",
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
     },
   });
+
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        setIsLoadingRestaurants(true);
+        const { data, error } = await supabase
+          .from("Restaurants_Details")
+          .select("id, restaurant_name, address")
+          .order("restaurant_name");
+
+        if (error) {
+          console.error("Error fetching restaurants:", error);
+          throw error;
+        }
+
+        setRestaurants(data || []);
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load restaurants",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingRestaurants(false);
+      }
+    };
+
+    fetchRestaurants();
+  }, [toast]);
 
   const onSubmit = async (data: FoodRequestFormValues) => {
     setIsSubmitting(true);
 
     try {
       console.log("Submitting food request with NGO ID:", ngoId);
-      
-      // Get list of restaurants to select a recipient randomly (for demonstration)
-      const { data: restaurants, error: restaurantsError } = await supabase
-        .from("Restaurants_Details")
-        .select("id")
-        .limit(10);
-
-      if (restaurantsError) {
-        console.error("Error fetching restaurants:", restaurantsError);
-        throw restaurantsError;
-      }
-
-      if (!restaurants || restaurants.length === 0) {
-        toast({
-          title: "Error",
-          description: "No restaurants found in the system",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Select a random restaurant
-      const randomRestaurant = restaurants[Math.floor(Math.random() * restaurants.length)];
-      console.log("Selected restaurant:", randomRestaurant);
+      console.log("Selected restaurant ID:", data.restaurantId);
 
       // Create food request in the ngo_food_requests table
       const { error } = await supabase
         .from("ngo_food_requests")
         .insert({
           ngo_id: ngoId,
-          restaurant_id: randomRestaurant.id,
+          restaurant_id: parseInt(data.restaurantId),
           request_title: data.requestTitle,
           request_description: data.requestDescription,
           quantity: data.quantity,
@@ -100,7 +118,7 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
 
       toast({
         title: "Success",
-        description: "Food request submitted successfully",
+        description: "Food request submitted successfully to the selected restaurant",
       });
 
       // Reset form
@@ -127,12 +145,48 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
       <CardHeader>
         <CardTitle>Create Food Request</CardTitle>
         <CardDescription>
-          Submit a request for food donations from restaurants
+          Submit a request for food donations from a specific restaurant
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="restaurantId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Restaurant</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a restaurant to send your request to" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingRestaurants ? (
+                        <SelectItem value="loading" disabled>Loading restaurants...</SelectItem>
+                      ) : restaurants.length > 0 ? (
+                        restaurants.map((restaurant) => (
+                          <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{restaurant.restaurant_name}</span>
+                              {restaurant.address && (
+                                <span className="text-sm text-muted-foreground">{restaurant.address}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-restaurants" disabled>No restaurants available</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="requestTitle"
@@ -223,7 +277,7 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || restaurants.length === 0}
               >
                 {isSubmitting ? "Submitting..." : "Submit Request"}
               </Button>
@@ -232,7 +286,7 @@ const FoodRequestForm = ({ ngoId, onSuccess }: FoodRequestFormProps) => {
         </Form>
       </CardContent>
       <CardFooter className="bg-muted/50 border-t flex justify-between text-xs text-muted-foreground">
-        <p>All requests are reviewed by restaurants before approval</p>
+        <p>Your request will be sent directly to the selected restaurant for review</p>
       </CardFooter>
     </Card>
   );
