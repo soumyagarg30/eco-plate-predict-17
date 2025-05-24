@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
 import RestaurantDetails from "@/components/restaurant/RestaurantDetails";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
-import { LogOut, Clock, Check, X, Package } from "lucide-react";
+import { LogOut, Clock, Check, X, Package, Star, MessageSquare } from "lucide-react";
 
 interface NGORequest {
   id: string;
@@ -39,14 +39,25 @@ interface PackingCompany {
   address?: string;
 }
 
+interface RestaurantRating {
+  id: string;
+  rating: number;
+  review: string | null;
+  created_at: string;
+  user_id: number;
+  user_name?: string;
+}
+
 const RestaurantDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurantData, setRestaurantData] = useState<any>(null);
   const [ngoRequests, setNgoRequests] = useState<NGORequest[]>([]);
   const [packingCompanies, setPackingCompanies] = useState<PackingCompany[]>([]);
+  const [restaurantRatings, setRestaurantRatings] = useState<RestaurantRating[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
+  const [ratingsLoading, setRatingsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [packingDialogOpen, setPackingDialogOpen] = useState(false);
   const [selectedPackingCompany, setSelectedPackingCompany] = useState("");
@@ -91,6 +102,7 @@ const RestaurantDashboard = () => {
       
       fetchNGORequests(parsedData.id);
       fetchPackingCompanies();
+      fetchRestaurantRatings(parsedData.id);
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
       setAuthError("Invalid restaurant data. Please login again.");
@@ -110,6 +122,60 @@ const RestaurantDashboard = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
+
+  const fetchRestaurantRatings = async (restaurantId: number) => {
+    setRatingsLoading(true);
+    try {
+      console.log("Fetching ratings for restaurant ID:", restaurantId);
+      
+      const { data: ratingsData, error: ratingsError } = await supabase
+        .from("restaurant_ratings")
+        .select("*")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false });
+      
+      if (ratingsError) {
+        console.error("Error fetching restaurant ratings:", ratingsError);
+        throw ratingsError;
+      }
+      
+      console.log("Restaurant ratings fetched:", ratingsData);
+      
+      if (ratingsData && ratingsData.length > 0) {
+        // Fetch user names for each rating
+        const ratingsWithUserNames = await Promise.all(
+          ratingsData.map(async (rating) => {
+            const { data: userData } = await supabase
+              .from("User_Details")
+              .select("name")
+              .eq("id", rating.user_id)
+              .single();
+            
+            return {
+              ...rating,
+              user_name: userData?.name || "Anonymous User",
+            };
+          })
+        );
+        
+        console.log("Ratings with user names:", ratingsWithUserNames);
+        setRestaurantRatings(ratingsWithUserNames);
+      } else {
+        console.log("No ratings found for this restaurant");
+        setRestaurantRatings([]);
+      }
+    } catch (error) {
+      console.error("Error fetching restaurant ratings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load restaurant ratings",
+        variant: "destructive",
+      });
+      setRestaurantRatings([]);
+    } finally {
+      setRatingsLoading(false);
+    }
+  };
 
   const fetchPackingCompanies = async () => {
     try {
@@ -303,6 +369,23 @@ const RestaurantDashboard = () => {
     return date.toLocaleDateString();
   };
 
+  const calculateAverageRating = () => {
+    if (restaurantRatings.length === 0) return 0;
+    const sum = restaurantRatings.reduce((acc, rating) => acc + rating.rating, 0);
+    return (sum / restaurantRatings.length).toFixed(1);
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <Star
+        key={index}
+        className={`h-4 w-4 ${
+          index < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+        }`}
+      />
+    ));
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -366,6 +449,7 @@ const RestaurantDashboard = () => {
               <TabsTrigger value="menu">Menu Management</TabsTrigger>
               <TabsTrigger value="requests">NGO Requests</TabsTrigger>
               <TabsTrigger value="packing">Packing Requests</TabsTrigger>
+              <TabsTrigger value="ratings">Ratings & Reviews</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details">
@@ -594,6 +678,74 @@ const RestaurantDashboard = () => {
                       Click "New Packing Request" to send a request to packing companies
                     </p>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ratings">
+              <Card className="shadow-md border-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5" />
+                    Ratings & Reviews
+                  </CardTitle>
+                  <CardDescription>
+                    View all ratings and reviews from your customers
+                  </CardDescription>
+                  {restaurantRatings.length > 0 && (
+                    <div className="flex items-center gap-2 mt-4 p-4 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        {renderStars(Math.round(parseFloat(calculateAverageRating())))}
+                      </div>
+                      <span className="font-semibold text-lg">{calculateAverageRating()}</span>
+                      <span className="text-gray-600">
+                        ({restaurantRatings.length} review{restaurantRatings.length !== 1 ? 's' : ''})
+                      </span>
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {ratingsLoading ? (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">Loading ratings...</p>
+                    </div>
+                  ) : restaurantRatings.length > 0 ? (
+                    <div className="space-y-4">
+                      {restaurantRatings.map((rating) => (
+                        <Card key={rating.id} className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1">
+                                {renderStars(rating.rating)}
+                              </div>
+                              <span className="font-medium">{rating.user_name}</span>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {formatDate(rating.created_at)}
+                            </span>
+                          </div>
+                          {rating.review && (
+                            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                <p className="text-gray-700 text-sm leading-relaxed">
+                                  {rating.review}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-10 border rounded-md bg-gray-50">
+                      <Star className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                      <p className="text-gray-500 mb-2">No ratings or reviews yet</p>
+                      <p className="text-sm text-gray-400">
+                        When customers rate your restaurant, their reviews will appear here
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
