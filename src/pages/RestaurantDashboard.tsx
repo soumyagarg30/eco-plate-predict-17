@@ -95,6 +95,14 @@ const RestaurantDashboard = () => {
     try {
       console.log("Fetching NGO requests for restaurant ID:", restaurantId);
       
+      // First, let's get all requests to see what's in the table
+      const { data: allRequestsData, error: allRequestsError } = await supabase
+        .from("ngo_food_requests")
+        .select("*");
+      
+      console.log("All NGO requests in database:", allRequestsData);
+      
+      // Now get requests for this specific restaurant
       const { data: requestsData, error: requestsError } = await supabase
         .from("ngo_food_requests")
         .select("*")
@@ -105,9 +113,9 @@ const RestaurantDashboard = () => {
         throw requestsError;
       }
       
-      console.log("NGO requests fetched:", requestsData);
+      console.log("NGO requests for restaurant:", requestsData);
       
-      if (requestsData) {
+      if (requestsData && requestsData.length > 0) {
         const requestsWithNGONames = await Promise.all(
           requestsData.map(async (request) => {
             const { data: ngoData } = await supabase
@@ -125,6 +133,9 @@ const RestaurantDashboard = () => {
         
         console.log("Requests with NGO names:", requestsWithNGONames);
         setNgoRequests(requestsWithNGONames);
+      } else {
+        console.log("No requests found for this restaurant");
+        setNgoRequests([]);
       }
     } catch (error) {
       console.error("Error fetching NGO requests:", error);

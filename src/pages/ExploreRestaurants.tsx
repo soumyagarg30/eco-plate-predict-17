@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { DB_TABLES, RestaurantDetails } from "@/utils/dbUtils";
@@ -25,13 +25,6 @@ interface RestaurantWithMenu extends RestaurantDetails {
   menuItems: MenuItem[];
 }
 
-interface CartItem {
-  menuItem: MenuItem;
-  quantity: number;
-  restaurantId: number;
-  restaurantName: string;
-}
-
 const ExploreRestaurants = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,7 +32,6 @@ const ExploreRestaurants = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [expandedRestaurants, setExpandedRestaurants] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -121,34 +113,6 @@ const ExploreRestaurants = () => {
     }
   };
 
-  const addToCart = (menuItem: MenuItem, restaurant: RestaurantWithMenu) => {
-    setCart(prev => {
-      const existingItem = prev.find(item => 
-        item.menuItem.id === menuItem.id && item.restaurantId === restaurant.id
-      );
-      
-      if (existingItem) {
-        return prev.map(item => 
-          item.menuItem.id === menuItem.id && item.restaurantId === restaurant.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prev, {
-          menuItem,
-          quantity: 1,
-          restaurantId: restaurant.id,
-          restaurantName: restaurant.restaurant_name
-        }];
-      }
-    });
-
-    toast({
-      title: "Added to Cart",
-      description: `${menuItem.name} added from ${restaurant.restaurant_name}`,
-    });
-  };
-
   const toggleRestaurantExpansion = (restaurantId: number) => {
     setExpandedRestaurants(prev => {
       const newSet = new Set(prev);
@@ -159,37 +123,6 @@ const ExploreRestaurants = () => {
       }
       return newSet;
     });
-  };
-
-  const getTotalCartItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const proceedToCheckout = () => {
-    if (cart.length === 0) {
-      toast({
-        title: "Empty Cart",
-        description: "Please add items to your cart before checkout",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Group cart items by restaurant for checkout
-    const restaurantGroups = cart.reduce((groups, item) => {
-      if (!groups[item.restaurantId]) {
-        groups[item.restaurantId] = {
-          restaurant: { id: item.restaurantId, name: item.restaurantName },
-          items: []
-        };
-      }
-      groups[item.restaurantId].items.push(item);
-      return groups;
-    }, {} as Record<number, any>);
-
-    // For now, navigate to the first restaurant's detail page with the cart items
-    const firstRestaurantId = Object.keys(restaurantGroups)[0];
-    navigate(`/restaurant/${firstRestaurantId}?tab=menu`);
   };
 
   // Filter restaurants based on search term
@@ -213,13 +146,6 @@ const ExploreRestaurants = () => {
                 Discover restaurants and place orders
               </p>
             </div>
-            
-            {getTotalCartItems() > 0 && (
-              <Button onClick={proceedToCheckout} className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Cart ({getTotalCartItems()})
-              </Button>
-            )}
           </div>
 
           <div className="mb-6">
@@ -261,17 +187,19 @@ const ExploreRestaurants = () => {
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        {/* Menu Items */}
+                        {/* Menu Items Preview */}
                         <div className="mb-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium text-sm">Menu Items</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleRestaurantExpansion(restaurant.id)}
-                            >
-                              {expandedRestaurants.has(restaurant.id) ? "Show Less" : "Show More"}
-                            </Button>
+                            {restaurant.menuItems.length > 3 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleRestaurantExpansion(restaurant.id)}
+                              >
+                                {expandedRestaurants.has(restaurant.id) ? "Show Less" : "Show More"}
+                              </Button>
+                            )}
                           </div>
                           
                           {restaurant.menuItems.length > 0 ? (
@@ -291,16 +219,7 @@ const ExploreRestaurants = () => {
                                         {item.is_vegan && <Badge variant="secondary" className="text-xs">Vegan</Badge>}
                                       </div>
                                     </div>
-                                    <div className="text-right ml-2">
-                                      <span className="font-bold text-sm">${item.price.toFixed(2)}</span>
-                                      <Button
-                                        size="sm"
-                                        className="ml-2 h-6 w-6 p-0"
-                                        onClick={() => addToCart(item, restaurant)}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                      </Button>
-                                    </div>
+                                    <span className="font-bold text-sm ml-2">${item.price.toFixed(2)}</span>
                                   </div>
                                 </div>
                               ))}
@@ -324,9 +243,11 @@ const ExploreRestaurants = () => {
                             View Details
                           </Button>
                           <Button 
-                            onClick={() => navigate(`/restaurant/${restaurant.id}?tab=menu`)}
+                            onClick={() => navigate(`/place-order/${restaurant.id}`)}
                             className="flex-1"
+                            disabled={restaurant.menuItems.length === 0}
                           >
+                            <ShoppingCart className="h-4 w-4 mr-2" />
                             Order Now
                           </Button>
                         </div>
