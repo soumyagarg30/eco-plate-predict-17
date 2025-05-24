@@ -369,8 +369,8 @@ const RestaurantDashboard = () => {
     return date.toLocaleDateString();
   };
 
-  const calculateAverageRating = () => {
-    if (restaurantRatings.length === 0) return 0;
+  const calculateAverageRating = (): string => {
+    if (restaurantRatings.length === 0) return "0.0";
     const sum = restaurantRatings.reduce((acc, rating) => acc + rating.rating, 0);
     return (sum / restaurantRatings.length).toFixed(1);
   };
