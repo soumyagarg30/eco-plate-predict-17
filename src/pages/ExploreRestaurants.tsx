@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, MapPin, Phone, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { DB_TABLES, RestaurantDetails } from "@/utils/dbUtils";
@@ -136,133 +135,179 @@ const ExploreRestaurants = () => {
       <div className="flex min-h-screen bg-gray-50 w-full">
         <UserSidebar userName={userData?.name} />
         
-        <div className="flex-1 p-6 md:p-10">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+        <div className="flex-1 p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
                 Explore Restaurants
               </h1>
-              <p className="text-gray-600">
-                Discover restaurants and place orders
+              <p className="text-lg text-gray-600">
+                Discover amazing restaurants and place your orders
               </p>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Search by name or address..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="mb-8">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search restaurants or locations..."
+                  className="pl-10 h-12 text-base"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="h-96 animate-pulse">
-                  <CardContent className="p-0">
-                    <div className="h-full bg-gray-200"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <>
-              {filteredRestaurants.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredRestaurants.map((restaurant) => (
-                    <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">{restaurant.restaurant_name}</CardTitle>
-                        <div className="text-sm text-gray-500">
-                          <p>{restaurant.address || "No address provided"}</p>
-                          {restaurant.phone_number && (
-                            <p>Phone: {restaurant.phone_number}</p>
-                          )}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                    <CardContent className="p-6">
+                      <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <>
+                {filteredRestaurants.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredRestaurants.map((restaurant) => (
+                      <Card key={restaurant.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-md">
+                        {/* Restaurant Image Placeholder */}
+                        <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 relative">
+                          <div className="absolute inset-0 bg-black/10"></div>
+                          <div className="absolute top-4 right-4">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="text-sm font-medium">4.5</span>
+                            </div>
+                          </div>
                         </div>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        {/* Menu Items Preview */}
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-medium text-sm">Menu Items</h4>
-                            {restaurant.menuItems.length > 3 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleRestaurantExpansion(restaurant.id)}
-                              >
-                                {expandedRestaurants.has(restaurant.id) ? "Show Less" : "Show More"}
-                              </Button>
+                        
+                        <CardContent className="p-6">
+                          <div className="mb-4">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                              {restaurant.restaurant_name}
+                            </h3>
+                            
+                            <div className="space-y-2 text-sm text-gray-600">
+                              {restaurant.address && (
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-gray-400" />
+                                  <span>{restaurant.address}</span>
+                                </div>
+                              )}
+                              {restaurant.phone_number && (
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-4 w-4 text-gray-400" />
+                                  <span>{restaurant.phone_number}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Menu Items Preview */}
+                          <div className="mb-6">
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="font-semibold text-gray-900">Menu Highlights</h4>
+                              {restaurant.menuItems.length > 2 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleRestaurantExpansion(restaurant.id)}
+                                  className="text-sm"
+                                >
+                                  {expandedRestaurants.has(restaurant.id) ? "Show Less" : `+${restaurant.menuItems.length - 2} more`}
+                                </Button>
+                              )}
+                            </div>
+                            
+                            {restaurant.menuItems.length > 0 ? (
+                              <div className="space-y-3">
+                                {restaurant.menuItems
+                                  .slice(0, expandedRestaurants.has(restaurant.id) ? undefined : 2)
+                                  .map((item) => (
+                                  <div key={item.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="font-medium text-gray-900">{item.name}</span>
+                                          <div className="flex gap-1">
+                                            {item.is_vegetarian && (
+                                              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-700">
+                                                Veg
+                                              </Badge>
+                                            )}
+                                            {item.is_vegan && (
+                                              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-700">
+                                                Vegan
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {item.description && (
+                                          <p className="text-gray-500 text-xs line-clamp-2">{item.description}</p>
+                                        )}
+                                      </div>
+                                      <span className="font-bold text-green-600 ml-3">${item.price.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-400 italic text-center py-4">
+                                Menu coming soon...
+                              </p>
                             )}
                           </div>
                           
-                          {restaurant.menuItems.length > 0 ? (
-                            <div className="space-y-2">
-                              {restaurant.menuItems
-                                .slice(0, expandedRestaurants.has(restaurant.id) ? undefined : 3)
-                                .map((item) => (
-                                <div key={item.id} className="border rounded-lg p-3 bg-white">
-                                  <div className="flex justify-between items-start mb-1">
-                                    <div className="flex-1">
-                                      <span className="font-medium text-sm">{item.name}</span>
-                                      {item.description && (
-                                        <p className="text-gray-500 text-xs mt-1 line-clamp-2">{item.description}</p>
-                                      )}
-                                      <div className="flex gap-1 mt-2">
-                                        {item.is_vegetarian && <Badge variant="secondary" className="text-xs">Veg</Badge>}
-                                        {item.is_vegan && <Badge variant="secondary" className="text-xs">Vegan</Badge>}
-                                      </div>
-                                    </div>
-                                    <span className="font-bold text-sm ml-2">${item.price.toFixed(2)}</span>
-                                  </div>
-                                </div>
-                              ))}
-                              {!expandedRestaurants.has(restaurant.id) && restaurant.menuItems.length > 3 && (
-                                <p className="text-xs text-gray-400 italic text-center">
-                                  + {restaurant.menuItems.length - 3} more items available
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-gray-400">No menu items available</p>
-                          )}
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button 
-                            onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            View Details
-                          </Button>
-                          <Button 
-                            onClick={() => navigate(`/place-order/${restaurant.id}`)}
-                            className="flex-1"
-                            disabled={restaurant.menuItems.length === 0}
-                          >
-                            <ShoppingCart className="h-4 w-4 mr-2" />
-                            Order Now
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-12 bg-white rounded-lg border">
-                  <p className="text-xl text-gray-500 mb-4">No restaurants found</p>
-                  <p className="text-gray-400">Try adjusting your search criteria</p>
-                </div>
-              )}
-            </>
-          )}
+                          <div className="flex gap-3">
+                            <Button 
+                              onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                              variant="outline"
+                              className="flex-1 border-gray-200 hover:bg-gray-50"
+                            >
+                              View Details
+                            </Button>
+                            <Button 
+                              onClick={() => navigate(`/place-order/${restaurant.id}`)}
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              disabled={restaurant.menuItems.length === 0}
+                            >
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              Order Now
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <Search className="h-12 w-12 text-gray-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No restaurants found</h3>
+                      <p className="text-gray-500">Try adjusting your search criteria or browse all available restaurants</p>
+                      <Button 
+                        variant="outline" 
+                        className="mt-4"
+                        onClick={() => setSearchTerm("")}
+                      >
+                        Clear Search
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </SidebarProvider>
