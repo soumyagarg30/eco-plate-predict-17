@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -762,3 +763,448 @@ export const FoodPlanningForm: React.FC<FoodPlanningFormProps> = ({ restaurantId
                         <SelectItem value="holiday">Holiday</SelectItem>
                         <SelectItem value="wedding">Wedding</SelectItem>
                       </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="mealTime">Meal Time *</Label>
+                    <Select value={formData.mealTime} onValueChange={(value) => handleInputChange('mealTime', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select meal time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="breakfast">Breakfast</SelectItem>
+                        <SelectItem value="lunch">Lunch</SelectItem>
+                        <SelectItem value="dinner">Dinner</SelectItem>
+                        <SelectItem value="snack">Snack</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="dietaryPreference">Dietary Preference *</Label>
+                    <Select value={formData.dietaryPreference} onValueChange={(value) => handleInputChange('dietaryPreference', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select dietary preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="non-vegetarian">Non-Vegetarian</SelectItem>
+                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                        <SelectItem value="vegan">Vegan</SelectItem>
+                        <SelectItem value="pescatarian">Pescatarian</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="demandedDish">Demanded Dish</Label>
+                  <Input
+                    id="demandedDish"
+                    value={formData.demandedDish}
+                    onChange={(e) => handleInputChange('demandedDish', e.target.value)}
+                    placeholder="Enter dish name"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="quantityRequested">Quantity Requested</Label>
+                    <Input
+                      id="quantityRequested"
+                      type="number"
+                      value={formData.quantityRequested}
+                      onChange={(e) => handleInputChange('quantityRequested', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="familyMembers">Family Members</Label>
+                    <Input
+                      id="familyMembers"
+                      type="number"
+                      value={formData.familyMembers}
+                      onChange={(e) => handleInputChange('familyMembers', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="adults">Adults</Label>
+                    <Input
+                      id="adults"
+                      type="number"
+                      value={formData.adults}
+                      onChange={(e) => handleInputChange('adults', parseInt(e.target.value))}
+                      min="0"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="children">Children</Label>
+                    <Input
+                      id="children"
+                      type="number"
+                      value={formData.children}
+                      onChange={(e) => handleInputChange('children', parseInt(e.target.value))}
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="age">Average Age</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange('age', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="eventDuration">Event Duration (hours)</Label>
+                    <Input
+                      id="eventDuration"
+                      type="number"
+                      value={formData.eventDuration}
+                      onChange={(e) => handleInputChange('eventDuration', parseFloat(e.target.value))}
+                      min="0.5"
+                      step="0.5"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="peoplePerDay">People Per Day</Label>
+                    <Input
+                      id="peoplePerDay"
+                      type="number"
+                      value={formData.peoplePerDay}
+                      onChange={(e) => handleInputChange('peoplePerDay', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="dishRating">Dish Rating (1-5)</Label>
+                    <Input
+                      id="dishRating"
+                      type="number"
+                      value={formData.dishRating}
+                      onChange={(e) => handleInputChange('dishRating', parseFloat(e.target.value))}
+                      min="1"
+                      max="5"
+                      step="0.1"
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handlePredict} 
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Brain className="mr-2 animate-spin" size={16} />
+                      Generating Prediction...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2" size={16} />
+                      Generate AI Prediction
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Food Planning Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Prediction Results</CardTitle>
+                <CardDescription>Food planning recommendations and waste optimization</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {prediction ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ChefHat className="text-blue-600" size={20} />
+                          <span className="font-semibold text-blue-700">Total Quantity</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {prediction.totalQuantity} servings
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="text-red-600" size={20} />
+                          <span className="font-semibold text-red-700">Expected Waste</span>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {prediction.wastePercentage}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-green-50 rounded">
+                        <div className="font-semibold text-green-600">Efficiency Score</div>
+                        <div className="text-lg">{prediction.efficiencyScore}%</div>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded">
+                        <div className="font-semibold text-purple-600">Confidence</div>
+                        <div className="text-lg">{prediction.confidenceScore}%</div>
+                      </div>
+                    </div>
+
+                    {prediction.dishRecommendations && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold mb-2">Dish Breakdown</h4>
+                        <div className="space-y-2">
+                          {prediction.dishRecommendations.map((dish, index) => (
+                            <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span>{dish.name}</span>
+                              <div className="text-right">
+                                <div className="font-semibold">{dish.quantity} servings</div>
+                                <div className="text-sm text-gray-600">₹{dish.cost}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <ChefHat className="mx-auto mb-4 text-gray-400" size={48} />
+                    <p>Enter food planning parameters to get AI predictions</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="facility-management">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Facility Management Input Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Facility Management Parameters</CardTitle>
+                <CardDescription>Enter facility details for optimization analysis</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="kitchenSize">Kitchen Size (sq ft)</Label>
+                    <Input
+                      id="kitchenSize"
+                      type="number"
+                      value={facilityData.kitchenSize}
+                      onChange={(e) => handleFacilityChange('kitchenSize', parseInt(e.target.value))}
+                      min="100"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="staffCount">Staff Count</Label>
+                    <Input
+                      id="staffCount"
+                      type="number"
+                      value={facilityData.staffCount}
+                      onChange={(e) => handleFacilityChange('staffCount', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="equipmentCount">Equipment Count</Label>
+                    <Input
+                      id="equipmentCount"
+                      type="number"
+                      value={facilityData.equipmentCount}
+                      onChange={(e) => handleFacilityChange('equipmentCount', parseInt(e.target.value))}
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="currentUtilization">Current Utilization (%)</Label>
+                    <Input
+                      id="currentUtilization"
+                      type="number"
+                      value={facilityData.currentUtilization}
+                      onChange={(e) => handleFacilityChange('currentUtilization', parseInt(e.target.value))}
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="peakHours">Peak Hours *</Label>
+                    <Select value={facilityData.peakHours} onValueChange={(value) => handleFacilityChange('peakHours', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select peak hours" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="breakfast">Breakfast (7-10 AM)</SelectItem>
+                        <SelectItem value="lunch">Lunch (12-3 PM)</SelectItem>
+                        <SelectItem value="dinner">Dinner (6-10 PM)</SelectItem>
+                        <SelectItem value="all-day">All Day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="maintenanceSchedule">Maintenance Schedule *</Label>
+                    <Select value={facilityData.maintenanceSchedule} onValueChange={(value) => handleFacilityChange('maintenanceSchedule', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select schedule" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="energyConsumption">Energy Consumption (kWh/month)</Label>
+                  <Input
+                    id="energyConsumption"
+                    type="number"
+                    value={facilityData.energyConsumption}
+                    onChange={(e) => handleFacilityChange('energyConsumption', parseInt(e.target.value))}
+                    min="100"
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleFacilityPredict} 
+                  disabled={isLoading}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Factory className="mr-2 animate-spin" size={16} />
+                      Analyzing Facility...
+                    </>
+                  ) : (
+                    <>
+                      <Factory className="mr-2" size={16} />
+                      Analyze Facility
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Facility Management Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Facility Optimization Results</CardTitle>
+                <CardDescription>AI-powered recommendations for facility management</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {facilityPrediction ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building className="text-blue-600" size={20} />
+                          <span className="font-semibold text-blue-700">Optimal Staffing</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {facilityPrediction.optimalStaffing} people
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Leaf className="text-green-600" size={20} />
+                          <span className="font-semibold text-green-700">Cost Savings</span>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">
+                          ₹{facilityPrediction.costSavings.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-orange-50 rounded">
+                        <div className="font-semibold text-orange-600">Energy Optimization</div>
+                        <div className="text-lg">{facilityPrediction.energyOptimization}%</div>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded">
+                        <div className="font-semibold text-purple-600">Utilization Score</div>
+                        <div className="text-lg">{facilityPrediction.utilizationScore}%</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Maintenance Recommendations</h4>
+                      <ul className="space-y-1">
+                        {facilityPrediction.maintenanceRecommendations.map((rec, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="text-green-600 mt-0.5" size={16} />
+                            <span className="text-sm">{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">Efficiency Improvements</h4>
+                      <ul className="space-y-1">
+                        {facilityPrediction.efficiencyImprovements.map((improvement, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <TrendingUp className="text-blue-600 mt-0.5" size={16} />
+                            <span className="text-sm">{improvement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="p-3 bg-gray-50 rounded">
+                      <div className="font-semibold text-gray-700">Confidence Score: {facilityPrediction.confidenceScore}%</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <Factory className="mx-auto mb-4 text-gray-400" size={48} />
+                    <p>Enter facility parameters to get optimization analysis</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default FoodPlanningForm;
