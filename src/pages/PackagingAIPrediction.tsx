@@ -35,7 +35,7 @@ const PackagingAIPrediction = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <PackingSidebar />
+      <PackingSidebar companyName={packagingData.companyName || "Packaging Company"} />
       
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
