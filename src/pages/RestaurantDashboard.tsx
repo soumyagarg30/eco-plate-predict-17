@@ -12,7 +12,6 @@ import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
 import RestaurantDetails from "@/components/restaurant/RestaurantDetails";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
 import { LogOut, Clock, Check, X } from "lucide-react";
-import { DB_TABLES } from "@/utils/dbUtils";
 
 interface NGORequest {
   id: string;
@@ -95,18 +94,23 @@ const RestaurantDashboard = () => {
     try {
       console.log("Fetching NGO requests for restaurant ID:", restaurantId);
       
-      // First, let's get all requests to see what's in the table
+      // Fetch all requests to debug
       const { data: allRequestsData, error: allRequestsError } = await supabase
         .from("ngo_food_requests")
         .select("*");
       
       console.log("All NGO requests in database:", allRequestsData);
       
+      if (allRequestsError) {
+        console.error("Error fetching all requests:", allRequestsError);
+      }
+      
       // Now get requests for this specific restaurant
       const { data: requestsData, error: requestsError } = await supabase
         .from("ngo_food_requests")
         .select("*")
-        .eq("restaurant_id", restaurantId);
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false });
       
       if (requestsError) {
         console.error("Error fetching NGO requests:", requestsError);
@@ -116,10 +120,11 @@ const RestaurantDashboard = () => {
       console.log("NGO requests for restaurant:", requestsData);
       
       if (requestsData && requestsData.length > 0) {
+        // Fetch NGO names for each request
         const requestsWithNGONames = await Promise.all(
           requestsData.map(async (request) => {
             const { data: ngoData } = await supabase
-              .from(DB_TABLES.NGOS)
+              .from("Ngo's")
               .select("name")
               .eq("id", request.ngo_id)
               .single();
@@ -144,6 +149,7 @@ const RestaurantDashboard = () => {
         description: "Failed to load NGO requests",
         variant: "destructive",
       });
+      setNgoRequests([]);
     } finally {
       setRequestsLoading(false);
     }
@@ -382,6 +388,9 @@ const RestaurantDashboard = () => {
                       <p className="text-sm text-gray-400">
                         When NGOs submit food requests to your restaurant, they will appear here
                       </p>
+                      <div className="mt-4 text-xs text-gray-400">
+                        Restaurant ID: {restaurantData.id}
+                      </div>
                     </div>
                   )}
                 </CardContent>
