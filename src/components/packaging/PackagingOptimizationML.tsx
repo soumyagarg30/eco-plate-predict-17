@@ -169,7 +169,6 @@ class LayerWithDropout {
         activated = linear;
     }
 
-    // Apply dropout during training
     if (training && this.dropoutRate > 0) {
       activated = activated.applyFunction(x => Math.random() > this.dropoutRate ? x / (1 - this.dropoutRate) : 0);
     }
@@ -186,19 +185,16 @@ export class PolynomialFeatures {
   constructor(public degree: number = 2) {}
 
   transform(features: number[]): number[] {
-    const result: number[] = [1]; // bias term
+    const result: number[] = [1];
     
-    // Linear features
     result.push(...features);
     
-    // Polynomial features up to specified degree
     for (let d = 2; d <= this.degree; d++) {
       for (let i = 0; i < features.length; i++) {
         result.push(Math.pow(features[i], d));
       }
     }
     
-    // Interaction features (cross terms)
     for (let i = 0; i < features.length; i++) {
       for (let j = i + 1; j < features.length; j++) {
         result.push(features[i] * features[j]);
@@ -209,14 +205,14 @@ export class PolynomialFeatures {
   }
 
   getFeatureCount(originalFeatures: number): number {
-    let count = 1; // bias
-    count += originalFeatures; // linear
+    let count = 1;
+    count += originalFeatures;
     
     for (let d = 2; d <= this.degree; d++) {
       count += originalFeatures;
     }
     
-    count += (originalFeatures * (originalFeatures - 1)) / 2; // pairwise interactions
+    count += (originalFeatures * (originalFeatures - 1)) / 2;
     
     return count;
   }
@@ -237,14 +233,13 @@ export class PackagingOptimizationModel {
   }
 
   private initializeNetwork(): void {
-    const inputFeatures = 7; // Updated to 7 features
+    const inputFeatures = 7;
     const polyFeatureSize = this.polynomialFeatures.getFeatureCount(inputFeatures);
     
-    // Build 3-layer neural network with dropout
     this.layers.push(new LayerWithDropout(polyFeatureSize, 48, 'relu', 0.3));
     this.layers.push(new LayerWithDropout(48, 32, 'tanh', 0.25));
     this.layers.push(new LayerWithDropout(32, 24, 'leakyRelu', 0.2));
-    this.layers.push(new LayerWithDropout(24, 3, 'linear', 0)); // output layer, no dropout
+    this.layers.push(new LayerWithDropout(24, 3, 'linear', 0));
     
     this.isInitialized = true;
     console.log('📦 Packaging Optimization Model initialized with', polyFeatureSize, 'polynomial features');
@@ -258,7 +253,6 @@ export class PackagingOptimizationModel {
     const polyFeatures = this.polynomialFeatures.transform(input);
     let currentOutput = new Matrix(1, polyFeatures.length, [polyFeatures]);
     
-    // Forward pass without dropout (inference mode)
     for (const layer of this.layers) {
       currentOutput = layer.forward(currentOutput, false);
     }
@@ -372,29 +366,41 @@ export class PackagingOptimizationPredictor {
 
   extractFeatures(data: PackagingOptimizationData): number[] {
     const packagingTypeMap: Record<string, number> = {
-      'containers': 0, 'boxes': 1, 'bags': 2, 'wrapping': 3
+      containers: 0,
+      boxes: 1,
+      bags: 2,
+      wrapping: 3
     };
     
     const materialMap: Record<string, number> = {
-      'plastic': 0, 'compostable': 1, 'recycled': 2, 'plant-based': 3
+      plastic: 0,
+      compostable: 1,
+      recycled: 2,
+      'plant-based': 3
     };
     
     const regionMap: Record<string, number> = {
-      'local': 0, 'regional': 1, 'national': 2, 'international': 3
+      local: 0,
+      regional: 1,
+      national: 2,
+      international: 3
     };
     
     const sustainabilityMap: Record<string, number> = {
-      'basic': 0, 'eco-friendly': 1, 'organic': 2, 'carbon-neutral': 3
+      basic: 0,
+      'eco-friendly': 1,
+      organic: 2,
+      'carbon-neutral': 3
     };
 
     return [
       packagingTypeMap[data.packagingType] || 0,
       materialMap[data.material] || 0,
       regionMap[data.supplierRegion] || 0,
-      data.quantity / 10000, // Normalized quantity
+      data.quantity / 10000,
       sustainabilityMap[data.sustainabilityTag] || 0,
-      data.emissionFactor / 100, // Normalized emission factor
-      data.costPerUnit // Cost per unit
+      data.emissionFactor / 100,
+      data.costPerUnit
     ];
   }
 
@@ -404,16 +410,13 @@ export class PackagingOptimizationPredictor {
     const features = this.extractFeatures(data);
     const [costOptimization, sustainabilityScore, overallOptimization] = this.model.predict(features);
     
-    // Calculate scores and select top vendors
     const scoredVendors = this.vendorDatabase.map(vendor => {
-      // Calculate compatibility with request
       const typeMatch = vendor.packagingType === data.packagingType ? 1.2 : 0.8;
       const materialMatch = vendor.material === data.material ? 1.3 : 0.9;
       
-      // Calculate overall score based on AI prediction
-      const costFactor = (1 - vendor.costPerUnit / 1.0) * 0.3; // Lower cost is better
-      const sustainabilityFactor = (vendor.sustainabilityScore / 100) * 0.5; // Higher sustainability is better
-      const emissionFactor = (1 - vendor.co2Emissions / 50) * 0.2; // Lower emissions are better
+      const costFactor = (1 - vendor.costPerUnit / 1.0) * 0.3;
+      const sustainabilityFactor = (vendor.sustainabilityScore / 100) * 0.5;
+      const emissionFactor = (1 - vendor.co2Emissions / 50) * 0.2;
       
       const aiScore = Math.abs(overallOptimization) * typeMatch * materialMatch;
       const calculatedScore = (costFactor + sustainabilityFactor + emissionFactor + aiScore) * 100;
@@ -425,12 +428,10 @@ export class PackagingOptimizationPredictor {
       };
     });
     
-    // Sort by overall score and take top 3
     const topRecommendations = scoredVendors
       .sort((a, b) => b.overallScore - a.overallScore)
       .slice(0, 3);
     
-    // Calculate impact metrics
     const currentCO2 = data.emissionFactor * data.quantity;
     const bestVendorCO2 = topRecommendations[0].co2Emissions * data.quantity / 1000;
     const co2Reduction = Math.max(0, ((currentCO2 - bestVendorCO2) / currentCO2) * 100);
@@ -523,7 +524,6 @@ export const PackagingOptimizationForm: React.FC<PackagingOptimizationFormProps>
   const handlePredict = async () => {
     setIsLoading(true);
     try {
-      // Validate required fields
       if (!formData.packagingType || !formData.material || !formData.supplierRegion || !formData.sustainabilityTag) {
         toast({
           title: "Missing Information",
@@ -536,7 +536,6 @@ export const PackagingOptimizationForm: React.FC<PackagingOptimizationFormProps>
       const result = predictor.predict(formData as PackagingOptimizationData);
       setPrediction(result);
       
-      // Save to database
       await saveToDatabase(formData as PackagingOptimizationData, result);
       
       toast({
@@ -582,7 +581,6 @@ export const PackagingOptimizationForm: React.FC<PackagingOptimizationFormProps>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Form */}
         <Card>
           <CardHeader>
             <CardTitle>Packaging Optimization Parameters</CardTitle>
@@ -711,7 +709,6 @@ export const PackagingOptimizationForm: React.FC<PackagingOptimizationFormProps>
           </CardContent>
         </Card>
 
-        {/* Results */}
         <Card>
           <CardHeader>
             <CardTitle>AI Optimization Results</CardTitle>
