@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -426,8 +425,8 @@ export const FoodPlanningForm: React.FC<FoodPlanningFormProps> = ({ restaurantId
     try {
       const { error } = await supabase.rpc('store_ml_data', {
         p_model_type: 'food_planning_prediction',
-        p_input_data: inputData,
-        p_output_data: outputData,
+        p_input_data: JSON.parse(JSON.stringify(inputData)),
+        p_output_data: JSON.parse(JSON.stringify(outputData)),
         p_metadata: {
           restaurant_id: restaurantId,
           timestamp: new Date().toISOString(),
