@@ -21,6 +21,7 @@ import RestaurantPackaging from "./pages/RestaurantPackaging";
 import RestaurantWasteManagement from "./pages/RestaurantWasteManagement";
 import ExploreRestaurants from "./pages/ExploreRestaurants";
 import PlaceOrder from "./pages/PlaceOrder";
+import RestaurantAIPrediction from "./pages/RestaurantAIPrediction";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
           <Route path="/place-order/:restaurantId" element={<PlaceOrder />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/restaurant-dashboard" element={<RestaurantDashboard />} />
+          <Route path="/restaurant-ai-prediction" element={<RestaurantAIPrediction />} />
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
           <Route path="/packing-dashboard" element={<PackingDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />

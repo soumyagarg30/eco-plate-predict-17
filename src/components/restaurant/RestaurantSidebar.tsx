@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Menu as MenuIcon, LogOut, Package } from "lucide-react";
+import { Home, Menu as MenuIcon, LogOut, Package, Brain } from "lucide-react";
 
 type RestaurantSidebarProps = {
   restaurantName: string;
@@ -90,6 +90,15 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
             >
               <Home className="w-5 h-5" />
               {!isCollapsed && <span className="ml-3 font-medium">Dashboard</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-ai-prediction"
+              className={`flex items-center p-3 rounded-lg ${isActive('/restaurant-ai-prediction') ? 'bg-blue-100 text-blue-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Brain className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">AI Prediction</span>}
             </Link>
           </li>
           <li>
