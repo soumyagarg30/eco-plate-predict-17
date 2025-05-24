@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Home, Menu as MenuIcon, LogOut } from "lucide-react";
+import { Home, Menu as MenuIcon, LogOut, Package } from "lucide-react";
 
 type RestaurantSidebarProps = {
   restaurantName: string;
@@ -110,6 +110,15 @@ const RestaurantSidebar = ({ restaurantName }: RestaurantSidebarProps) => {
                 <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
               </svg>
               {!isCollapsed && <span className="ml-3 font-medium">NGO Requests</span>}
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/restaurant-dashboard?tab=packing"
+              className={`flex items-center p-3 rounded-lg ${location.pathname === "/restaurant-dashboard" && location.search.includes("tab=packing") ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Package className="w-5 h-5" />
+              {!isCollapsed && <span className="ml-3 font-medium">Packing Requests</span>}
             </Link>
           </li>
         </ul>

@@ -1,117 +1,62 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase, directAuth } from "@/integrations/supabase/client";
-import { UserTypes } from "./LoginTabs";
-import { DB_TABLES } from "@/utils/dbUtils";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useLoginAuth = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [userType, setUserType] = useState<UserTypes>("restaurant");
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [error, setError] = useState("");
 
-  // Check if user is already logged in on component mount
-  useEffect(() => {
-    const checkExistingSession = () => {
-      const userType = localStorage.getItem("foodieSync_userType");
-      const userData = localStorage.getItem("foodieSync_userData");
-      
-      if (userType && userData) {
-        // Redirect to appropriate dashboard based on user type
-        if (userType === "restaurant") {
-          navigate("/restaurant-dashboard");
-        } else if (userType === "user") {
-          navigate("/user-dashboard");
-        } else if (userType === "ngo") {
-          navigate("/ngo-dashboard");
-        } else if (userType === "packing") {
-          navigate("/packing-dashboard");
-        } else if (userType === "admin") {
-          navigate("/admin-dashboard");
-        }
-      }
-    };
+  // Custom fetch wrapper for direct authentication without using user_auth table
+  const directAuth = async (email: string, password: string, userType: string) => {
+    // Determine which table to check based on userType
+    let tableName: string;
     
-    checkExistingSession();
-  }, [navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError("");
-    
-    // Basic validation
-    if (!email || !password) {
-      setLoginError("Please fill in all fields");
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
+    switch (userType) {
+      case "restaurant":
+        tableName = "Restaurants_Details";
+        break;
+      case "user":
+        tableName = "User_Details";
+        break;
+      case "ngo":
+        tableName = "Ngo's";
+        break;
+      case "packing":
+        tableName = "Packing_Companies";
+        break;
+      case "admin":
+        tableName = "Admin";
+        break;
+      default:
+        throw new Error("Invalid user type");
     }
     
+    // Query the appropriate table directly
+    const { data, error } = await supabase
+      .from(tableName as any)
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const login = async (email: string, password: string, userType: string) => {
     setIsLoading(true);
+    setError("");
     
     try {
-      // Authenticate directly against the appropriate table
       const userData = await directAuth(email, password, userType);
-      
-      if (!userData) {
-        throw new Error("Invalid email or password");
-      }
-      
-      console.log(`Auth successful for ${userType} user:`, userData);
-      
-      // Store user info in localStorage for persistence
-      localStorage.setItem("foodieSync_userType", userType);
-      localStorage.setItem("foodieSync_userData", JSON.stringify(userData));
-      
-      toast({
-        title: "Login Successful",
-        description: `Welcome back to FoodieSync as a ${userType}!`,
-      });
-      
-      console.log(`Successfully logged in as ${userType}. Redirecting to dashboard.`);
-      
-      // Redirect based on user type
-      if (userType === "restaurant") {
-        navigate("/restaurant-dashboard");
-      } else if (userType === "user") {
-        navigate("/user-dashboard");
-      } else if (userType === "ngo") {
-        navigate("/ngo-dashboard");
-      } else if (userType === "packing") {
-        navigate("/packing-dashboard");
-      } else {
-        navigate("/admin-dashboard");
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      setLoginError(error?.message || "Invalid email or password");
-      toast({
-        title: "Login Failed",
-        description: error?.message || "Invalid email or password",
-        variant: "destructive",
-      });
+      return { success: true, userData };
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
-  return {
-    userType,
-    setUserType,
-    isLoading,
-    email,
-    setEmail,
-    password,
-    setPassword,
-    loginError,
-    handleLogin
-  };
+  return { login, isLoading, error };
 };

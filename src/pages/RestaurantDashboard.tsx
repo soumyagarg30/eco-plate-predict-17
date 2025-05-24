@@ -6,12 +6,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantMenu from "@/components/restaurant/RestaurantMenu";
 import RestaurantDetails from "@/components/restaurant/RestaurantDetails";
 import RestaurantSidebar from "@/components/restaurant/RestaurantSidebar";
-import { LogOut, Clock, Check, X } from "lucide-react";
+import { LogOut, Clock, Check, X, Package } from "lucide-react";
 
 interface NGORequest {
   id: string;
@@ -26,14 +31,30 @@ interface NGORequest {
   ngo_name?: string;
 }
 
+interface PackingCompany {
+  id: number;
+  name: string;
+  email: string;
+  phone_number?: number;
+  address?: string;
+}
+
 const RestaurantDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [restaurantData, setRestaurantData] = useState<any>(null);
   const [ngoRequests, setNgoRequests] = useState<NGORequest[]>([]);
+  const [packingCompanies, setPackingCompanies] = useState<PackingCompany[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [packingDialogOpen, setPackingDialogOpen] = useState(false);
+  const [selectedPackingCompany, setSelectedPackingCompany] = useState("");
+  const [packingRequestTitle, setPackingRequestTitle] = useState("");
+  const [packingRequestDescription, setPackingRequestDescription] = useState("");
+  const [packingQuantity, setPackingQuantity] = useState(0);
+  const [packingDueDate, setPackingDueDate] = useState("");
+  const [isSubmittingPackingRequest, setIsSubmittingPackingRequest] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in as restaurant
@@ -69,6 +90,7 @@ const RestaurantDashboard = () => {
       setAuthError("");
       
       fetchNGORequests(parsedData.id);
+      fetchPackingCompanies();
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
       setAuthError("Invalid restaurant data. Please login again.");
@@ -88,6 +110,25 @@ const RestaurantDashboard = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
+
+  const fetchPackingCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Packing_Companies")
+        .select("*")
+        .order("name");
+
+      if (error) throw error;
+      setPackingCompanies(data || []);
+    } catch (error) {
+      console.error("Error fetching packing companies:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load packing companies",
+        variant: "destructive",
+      });
+    }
+  };
   
   const fetchNGORequests = async (restaurantId: number) => {
     setRequestsLoading(true);
@@ -152,6 +193,61 @@ const RestaurantDashboard = () => {
       setNgoRequests([]);
     } finally {
       setRequestsLoading(false);
+    }
+  };
+
+  const handlePackingRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingPackingRequest(true);
+    
+    if (!selectedPackingCompany || !packingRequestTitle || !packingRequestDescription || packingQuantity <= 0 || !packingDueDate) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      setIsSubmittingPackingRequest(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("packing_requests")
+        .insert({
+          packing_company_id: parseInt(selectedPackingCompany),
+          requester_id: restaurantData.id,
+          requester_type: "restaurant",
+          request_title: packingRequestTitle,
+          request_description: packingRequestDescription,
+          quantity: packingQuantity,
+          due_date: packingDueDate,
+          status: "pending"
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Packing request sent successfully",
+      });
+      
+      // Reset form
+      setPackingRequestTitle("");
+      setPackingRequestDescription("");
+      setPackingQuantity(0);
+      setPackingDueDate("");
+      setSelectedPackingCompany("");
+      setPackingDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error("Error sending packing request:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send packing request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingPackingRequest(false);
     }
   };
   
@@ -269,6 +365,7 @@ const RestaurantDashboard = () => {
               <TabsTrigger value="details">Restaurant Details</TabsTrigger>
               <TabsTrigger value="menu">Menu Management</TabsTrigger>
               <TabsTrigger value="requests">NGO Requests</TabsTrigger>
+              <TabsTrigger value="packing">Packing Requests</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details">
@@ -393,6 +490,110 @@ const RestaurantDashboard = () => {
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="packing">
+              <Card className="shadow-md border-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Packing Requests
+                  </CardTitle>
+                  <CardDescription>
+                    Request packaging materials and services from packing companies
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <Dialog open={packingDialogOpen} onOpenChange={setPackingDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="flex items-center gap-2">
+                          <Package className="h-4 w-4" />
+                          New Packing Request
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Request Packaging Services</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handlePackingRequest} className="space-y-4 pt-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="packing-company">Select Packing Company</Label>
+                            <Select value={selectedPackingCompany} onValueChange={setSelectedPackingCompany} required>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a packing company" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {packingCompanies.map((company) => (
+                                  <SelectItem key={company.id} value={company.id.toString()}>
+                                    {company.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="packing-title">Request Title</Label>
+                            <Input
+                              id="packing-title"
+                              placeholder="E.g., Food Container Packaging"
+                              value={packingRequestTitle}
+                              onChange={(e) => setPackingRequestTitle(e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="packing-description">Description</Label>
+                            <Textarea
+                              id="packing-description"
+                              placeholder="Describe your packaging needs"
+                              value={packingRequestDescription}
+                              onChange={(e) => setPackingRequestDescription(e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="packing-quantity">Quantity Needed</Label>
+                            <Input
+                              id="packing-quantity"
+                              type="number"
+                              min="1"
+                              placeholder="Number of units"
+                              value={packingQuantity || ""}
+                              onChange={(e) => setPackingQuantity(parseInt(e.target.value))}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="packing-due-date">Needed By</Label>
+                            <Input
+                              id="packing-due-date"
+                              type="date"
+                              value={packingDueDate}
+                              onChange={(e) => setPackingDueDate(e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              required
+                            />
+                          </div>
+                          <DialogFooter>
+                            <Button type="submit" disabled={isSubmittingPackingRequest}>
+                              {isSubmittingPackingRequest ? "Sending..." : "Send Request"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  <div className="text-center p-10 border rounded-md bg-gray-50">
+                    <Package className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                    <p className="text-gray-500 mb-2">No packing requests yet</p>
+                    <p className="text-sm text-gray-400">
+                      Click "New Packing Request" to send a request to packing companies
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
