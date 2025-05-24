@@ -39,15 +39,23 @@ export const useLoginAuth = () => {
         throw new Error("Invalid user type");
     }
     
-    // Query the appropriate table directly
+    // Query the appropriate table directly - use maybeSingle instead of single
     const { data, error } = await supabase
       .from(tableName as any)
       .select('*')
       .eq('email', email)
       .eq('password', password)
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Database error:", error);
+      throw new Error("Database connection error");
+    }
+    
+    if (!data) {
+      throw new Error("Invalid email or password");
+    }
+    
     return data;
   };
 
@@ -91,8 +99,17 @@ export const useLoginAuth = () => {
       
       return { success: true, userData };
     } catch (err: any) {
-      setError(err.message || "Login failed");
-      return { success: false, error: err.message };
+      console.error("Login error:", err);
+      const errorMessage = err.message || "Login failed. Please check your credentials.";
+      setError(errorMessage);
+      
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +117,12 @@ export const useLoginAuth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
     await login(email, password, userType);
   };
 
