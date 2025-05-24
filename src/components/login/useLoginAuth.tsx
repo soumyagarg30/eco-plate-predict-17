@@ -48,8 +48,6 @@ export const useLoginAuth = () => {
       .single();
     
     if (error) throw error;
-    if (!data) throw new Error("Invalid credentials");
-    
     return data;
   };
 
@@ -59,15 +57,6 @@ export const useLoginAuth = () => {
     
     try {
       const userData = await directAuth(email, password, userType);
-      
-      // Check verification status for non-admin users
-      if (userType !== "admin") {
-        // Safely check if verified property exists and is true
-        const isVerified = userData && typeof userData === 'object' && userData !== null && 'verified' in userData && userData.verified === true;
-        if (!isVerified) {
-          throw new Error("Your account is not verified yet. Please wait for admin approval.");
-        }
-      }
       
       // Store user data in localStorage
       localStorage.setItem("foodieSync_userType", userType);

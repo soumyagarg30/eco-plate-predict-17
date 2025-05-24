@@ -96,7 +96,6 @@ export type Database = {
           name: string
           password: string
           phone_number: number | null
-          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -106,7 +105,6 @@ export type Database = {
           name: string
           password: string
           phone_number?: number | null
-          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -116,7 +114,6 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: number | null
-          verified?: boolean | null
         }
         Relationships: []
       }
@@ -173,7 +170,6 @@ export type Database = {
           name: string
           password: string
           phone_number: number | null
-          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -183,7 +179,6 @@ export type Database = {
           name: string
           password: string
           phone_number?: number | null
-          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -193,7 +188,6 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: number | null
-          verified?: boolean | null
         }
         Relationships: []
       }
@@ -406,7 +400,6 @@ export type Database = {
           password: string
           phone_number: number
           restaurant_name: string
-          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -416,7 +409,6 @@ export type Database = {
           password: string
           phone_number: number
           restaurant_name: string
-          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -426,7 +418,6 @@ export type Database = {
           password?: string
           phone_number?: number
           restaurant_name?: string
-          verified?: boolean | null
         }
         Relationships: []
       }
@@ -438,7 +429,6 @@ export type Database = {
           name: string
           password: string
           phone_number: string | null
-          verified: boolean | null
         }
         Insert: {
           created_at?: string
@@ -447,7 +437,6 @@ export type Database = {
           name: string
           password: string
           phone_number?: string | null
-          verified?: boolean | null
         }
         Update: {
           created_at?: string
@@ -456,7 +445,6 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: string | null
-          verified?: boolean | null
         }
         Relationships: []
       }
