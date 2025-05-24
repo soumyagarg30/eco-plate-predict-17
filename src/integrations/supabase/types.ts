@@ -36,6 +36,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_model_data: {
+        Row: {
+          created_at: string | null
+          id: string
+          input_data: Json
+          metadata: Json | null
+          model_type: string
+          output_data: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          input_data: Json
+          metadata?: Json | null
+          model_type: string
+          output_data: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          input_data?: Json
+          metadata?: Json | null
+          model_type?: string
+          output_data?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ngo_food_requests: {
         Row: {
           created_at: string
@@ -96,6 +126,7 @@ export type Database = {
           name: string
           password: string
           phone_number: number | null
+          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -105,6 +136,7 @@ export type Database = {
           name: string
           password: string
           phone_number?: number | null
+          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -114,6 +146,7 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: number | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -170,6 +203,7 @@ export type Database = {
           name: string
           password: string
           phone_number: number | null
+          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -179,6 +213,7 @@ export type Database = {
           name: string
           password: string
           phone_number?: number | null
+          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -188,6 +223,7 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: number | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -400,6 +436,7 @@ export type Database = {
           password: string
           phone_number: number
           restaurant_name: string
+          verified: boolean | null
         }
         Insert: {
           address?: string | null
@@ -409,6 +446,7 @@ export type Database = {
           password: string
           phone_number: number
           restaurant_name: string
+          verified?: boolean | null
         }
         Update: {
           address?: string | null
@@ -418,6 +456,7 @@ export type Database = {
           password?: string
           phone_number?: number
           restaurant_name?: string
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -429,6 +468,7 @@ export type Database = {
           name: string
           password: string
           phone_number: string | null
+          verified: boolean | null
         }
         Insert: {
           created_at?: string
@@ -437,6 +477,7 @@ export type Database = {
           name: string
           password: string
           phone_number?: string | null
+          verified?: boolean | null
         }
         Update: {
           created_at?: string
@@ -445,6 +486,7 @@ export type Database = {
           name?: string
           password?: string
           phone_number?: string | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -545,7 +587,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      store_ml_data: {
+        Args: {
+          p_model_type: string
+          p_input_data: Json
+          p_output_data: Json
+          p_metadata?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
