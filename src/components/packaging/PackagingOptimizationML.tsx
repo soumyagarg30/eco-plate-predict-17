@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -372,28 +371,28 @@ export class PackagingOptimizationPredictor {
   }
 
   extractFeatures(data: PackagingOptimizationData): number[] {
-    const packagingTypeMap = {
+    const packagingTypeMap: Record<string, number> = {
       'containers': 0, 'boxes': 1, 'bags': 2, 'wrapping': 3
     };
     
-    const materialMap = {
+    const materialMap: Record<string, number> = {
       'plastic': 0, 'compostable': 1, 'recycled': 2, 'plant-based': 3
     };
     
-    const regionMap = {
+    const regionMap: Record<string, number> = {
       'local': 0, 'regional': 1, 'national': 2, 'international': 3
     };
     
-    const sustainabilityMap = {
+    const sustainabilityMap: Record<string, number> = {
       'basic': 0, 'eco-friendly': 1, 'organic': 2, 'carbon-neutral': 3
     };
 
     return [
-      packagingTypeMap[data.packagingType as keyof typeof packagingTypeMap] || 0,
-      materialMap[data.material as keyof typeof materialMap] || 0,
-      regionMap[data.supplierRegion as keyof typeof regionMap] || 0,
+      packagingTypeMap[data.packagingType] || 0,
+      materialMap[data.material] || 0,
+      regionMap[data.supplierRegion] || 0,
       data.quantity / 10000, // Normalized quantity
-      sustainabilityMap[data.sustainabilityTag as keyof typeof sustainabilityMap] || 0,
+      sustainabilityMap[data.sustainabilityTag] || 0,
       data.emissionFactor / 100, // Normalized emission factor
       data.costPerUnit // Cost per unit
     ];
