@@ -59,8 +59,10 @@ export const useLoginAuth = () => {
       const userData = await directAuth(email, password, userType);
       
       // Check verification status for non-admin users
-      if (userType !== "admin" && !userData.verified) {
-        throw new Error("Your account is not verified yet. Please wait for admin approval.");
+      if (userType !== "admin") {
+        if (!userData || typeof userData.verified === 'undefined' || !userData.verified) {
+          throw new Error("Your account is not verified yet. Please wait for admin approval.");
+        }
       }
       
       // Store user data in localStorage

@@ -66,8 +66,12 @@ const UserManagement = () => {
   const toggleVerification = async (userId: number, userType: string, currentStatus: boolean) => {
     try {
       const tableName = getTableName(userType);
+      if (!tableName) {
+        throw new Error(`Invalid user type: ${userType}`);
+      }
+
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .update({ verified: !currentStatus })
         .eq('id', userId);
 
@@ -89,7 +93,7 @@ const UserManagement = () => {
     }
   };
 
-  const getTableName = (userType: string) => {
+  const getTableName = (userType: string): string => {
     switch (userType) {
       case 'restaurant':
         return 'Restaurants_Details';
@@ -100,7 +104,7 @@ const UserManagement = () => {
       case 'packing':
         return 'Packing_Companies';
       default:
-        return '';
+        return 'User_Details'; // fallback to a valid table name
     }
   };
 
