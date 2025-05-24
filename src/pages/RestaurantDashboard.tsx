@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,8 +21,8 @@ interface NGORequest {
   quantity: number;
   status: string;
   due_date: string;
-  requester_id: number;
-  requester_type: string;
+  ngo_id: number;
+  restaurant_id: number;
   created_at: string;
   ngo_name?: string;
 }
@@ -94,13 +93,19 @@ const RestaurantDashboard = () => {
   const fetchNGORequests = async (restaurantId: number) => {
     setRequestsLoading(true);
     try {
-      const { data: requestsData, error: requestsError } = await supabase
-        .from("packing_requests")
-        .select("*")
-        .eq("packing_company_id", restaurantId)
-        .eq("requester_type", "ngo");
+      console.log("Fetching NGO requests for restaurant ID:", restaurantId);
       
-      if (requestsError) throw requestsError;
+      const { data: requestsData, error: requestsError } = await supabase
+        .from("ngo_food_requests")
+        .select("*")
+        .eq("restaurant_id", restaurantId);
+      
+      if (requestsError) {
+        console.error("Error fetching NGO requests:", requestsError);
+        throw requestsError;
+      }
+      
+      console.log("NGO requests fetched:", requestsData);
       
       if (requestsData) {
         const requestsWithNGONames = await Promise.all(
@@ -108,7 +113,7 @@ const RestaurantDashboard = () => {
             const { data: ngoData } = await supabase
               .from(DB_TABLES.NGOS)
               .select("name")
-              .eq("id", request.requester_id)
+              .eq("id", request.ngo_id)
               .single();
             
             return {
@@ -118,6 +123,7 @@ const RestaurantDashboard = () => {
           })
         );
         
+        console.log("Requests with NGO names:", requestsWithNGONames);
         setNgoRequests(requestsWithNGONames);
       }
     } catch (error) {
@@ -134,12 +140,17 @@ const RestaurantDashboard = () => {
   
   const handleUpdateRequestStatus = async (requestId: string, newStatus: string) => {
     try {
+      console.log("Updating request status:", { requestId, newStatus });
+      
       const { error } = await supabase
-        .from("packing_requests")
+        .from("ngo_food_requests")
         .update({ status: newStatus })
         .eq("id", requestId);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating request status:", error);
+        throw error;
+      }
       
       toast({
         title: "Success",
