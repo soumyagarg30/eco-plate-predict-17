@@ -39,6 +39,20 @@ interface PackingCompany {
   address?: string;
 }
 
+interface PackingRequest {
+  id: string;
+  packing_company_id: number;
+  requester_id: number;
+  requester_type: string;
+  request_title: string;
+  request_description: string;
+  quantity: number;
+  due_date: string;
+  status: string;
+  created_at: string;
+  packing_company_name?: string;
+}
+
 interface RestaurantRating {
   id: string;
   rating: number;
@@ -54,9 +68,11 @@ const RestaurantDashboard = () => {
   const [restaurantData, setRestaurantData] = useState<any>(null);
   const [ngoRequests, setNgoRequests] = useState<NGORequest[]>([]);
   const [packingCompanies, setPackingCompanies] = useState<PackingCompany[]>([]);
+  const [packingRequests, setPackingRequests] = useState<PackingRequest[]>([]);
   const [restaurantRatings, setRestaurantRatings] = useState<RestaurantRating[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [requestsLoading, setRequestsLoading] = useState(false);
+  const [packingRequestsLoading, setPackingRequestsLoading] = useState(false);
   const [ratingsLoading, setRatingsLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [packingDialogOpen, setPackingDialogOpen] = useState(false);
@@ -102,6 +118,7 @@ const RestaurantDashboard = () => {
       
       fetchNGORequests(parsedData.id);
       fetchPackingCompanies();
+      fetchPackingRequests(parsedData.id);
       fetchRestaurantRatings(parsedData.id);
     } catch (error) {
       console.error("Error parsing restaurant data:", error);
@@ -122,6 +139,61 @@ const RestaurantDashboard = () => {
       setIsLoading(false);
     }
   }, [navigate, toast]);
+
+  const fetchPackingRequests = async (restaurantId: number) => {
+    setPackingRequestsLoading(true);
+    try {
+      console.log("Fetching packing requests for restaurant ID:", restaurantId);
+      
+      const { data: requestsData, error: requestsError } = await supabase
+        .from("packing_requests")
+        .select("*")
+        .eq("requester_id", restaurantId)
+        .eq("requester_type", "restaurant")
+        .order("created_at", { ascending: false });
+      
+      if (requestsError) {
+        console.error("Error fetching packing requests:", requestsError);
+        throw requestsError;
+      }
+      
+      console.log("Packing requests for restaurant:", requestsData);
+      
+      if (requestsData && requestsData.length > 0) {
+        // Fetch packing company names for each request
+        const requestsWithCompanyNames = await Promise.all(
+          requestsData.map(async (request) => {
+            const { data: companyData } = await supabase
+              .from("Packing_Companies")
+              .select("name")
+              .eq("id", request.packing_company_id)
+              .single();
+            
+            return {
+              ...request,
+              packing_company_name: companyData?.name || "Unknown Company",
+            };
+          })
+        );
+        
+        console.log("Requests with company names:", requestsWithCompanyNames);
+        setPackingRequests(requestsWithCompanyNames);
+      } else {
+        console.log("No packing requests found for this restaurant");
+        setPackingRequests([]);
+      }
+    } catch (error) {
+      console.error("Error fetching packing requests:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load packing requests",
+        variant: "destructive",
+      });
+      setPackingRequests([]);
+    } finally {
+      setPackingRequestsLoading(false);
+    }
+  };
 
   const fetchRestaurantRatings = async (restaurantId: number) => {
     setRatingsLoading(true);
@@ -304,6 +376,11 @@ const RestaurantDashboard = () => {
       setPackingDueDate("");
       setSelectedPackingCompany("");
       setPackingDialogOpen(false);
+      
+      // Refresh packing requests
+      if (restaurantData?.id) {
+        fetchPackingRequests(restaurantData.id);
+      }
       
     } catch (error: any) {
       console.error("Error sending packing request:", error);
@@ -671,13 +748,64 @@ const RestaurantDashboard = () => {
                     </Dialog>
                   </div>
 
-                  <div className="text-center p-10 border rounded-md bg-gray-50">
-                    <Package className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-                    <p className="text-gray-500 mb-2">No packing requests yet</p>
-                    <p className="text-sm text-gray-400">
-                      Click "New Packing Request" to send a request to packing companies
-                    </p>
-                  </div>
+                  {packingRequestsLoading ? (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">Loading packing requests...</p>
+                    </div>
+                  ) : packingRequests.length > 0 ? (
+                    <div className="border rounded-md overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-gray-50">
+                          <TableRow>
+                            <TableHead>Packing Company</TableHead>
+                            <TableHead>Request</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Needed By</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Date Sent</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {packingRequests.map((request) => (
+                            <TableRow key={request.id}>
+                              <TableCell className="font-medium">
+                                {request.packing_company_name}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{request.request_title}</div>
+                                  <div className="text-sm text-gray-500 truncate max-w-xs">
+                                    {request.request_description}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>{request.quantity} units</TableCell>
+                              <TableCell>{formatDate(request.due_date)}</TableCell>
+                              <TableCell>
+                                <Badge className={
+                                  request.status === 'pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 
+                                  request.status === 'accepted' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
+                                  request.status === 'completed' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
+                                  'bg-red-100 text-red-800 hover:bg-red-200'
+                                }>
+                                  {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{formatDate(request.created_at)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center p-10 border rounded-md bg-gray-50">
+                      <Package className="mx-auto h-10 w-10 text-gray-400 mb-4" />
+                      <p className="text-gray-500 mb-2">No packing requests yet</p>
+                      <p className="text-sm text-gray-400">
+                        Click "New Packing Request" to send a request to packing companies
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
